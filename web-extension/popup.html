@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Popup</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div id="container">
+        <form id="passwordForm">
+            <label for="password">Enter Password:</label>
+            <div class="password-container">
+                <input type="password" id="password" name="password" required>
+                <button type="button" id="togglePassword" aria-label="Show password">
+                    <img src="images/open_eye_white.png" alt="Show" id="eyeIcon">
+                </button>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <label id="submitted" style="display: none;">Password has been set</label>
+        <button id="resetPassword" style="display: none;">Reset password</button>
+        <div class="switch-container" style="display: none;">
+            <label class="switch">
+                <input type="checkbox" id="enableToggle">
+                <span class="slider round"></span>
+            </label>
+            <span id="toggleLabel">Disabled</span>
+        </div>
+    </div>
+    <div class="mode-switch-container">
+        <label class="switch">
+            <input type="checkbox" id="modeToggle">
+            <span class="slider round"></span>
+        </label>
+        <span id="modeLabel">Dark Mode</span>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

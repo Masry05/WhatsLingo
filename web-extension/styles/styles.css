@@ -1,0 +1,176 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 300px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    color: #000000;
+    background-image: url('../images/wallpaper_white.png');
+    background-size: cover;
+    border: solid 5px #1daa61;;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.password-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+input[type="password"], input[type="text"] {
+    margin-top: 10px;
+    padding: 5px 30px 5px 10px; /* Extra padding on the right for the icon */
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #4A4A4A; /* Border color in dark mode */
+    background-color: #2A2A2A; /* Input background in dark mode */
+    color: #EDEDED; /* Light text color */
+}
+
+button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #1daa61;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2ab66e;
+}
+
+#togglePassword {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+#eyeIcon {
+    width: 25px; /* Adjust the size of the icon */
+    height: 27px;
+    margin-bottom: 7px;
+}
+
+#eyeIcon:active {
+    margin-top: 2px;
+    margin-left: 5px;
+}
+
+.switch-container {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #1daa61;
+}
+
+input:checked + .slider:before {
+    transform: translateX(14px);
+}
+.mode-switch-container {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.mode-switch-container .switch {
+    margin-right: 10px;
+}
+/* Default (light mode) styles */
+
+input[type="password"], input[type="text"] {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    color: #000000;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    color: #EDEDED;
+    background-image: url('../images/wallpaper_dark.png');
+    background-size: cover;
+}
+
+body.dark-mode input[type="password"], body.dark-mode input[type="text"] {
+    background-color: #2A2A2A;
+    border: 1px solid #4A4A4A;
+    color: #EDEDED;
+}
+
+button {
+    background-color: #1daa61;
+    color: white;
+}
+
+button:hover {
+    background-color: #2ab66e;
+}
