@@ -4,6 +4,7 @@ let isEnabled = false;
 let submitted = false;
 let password = "";
 let firstPress = false;
+let ignore = false;
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     switch(message['status']) {
@@ -45,7 +46,7 @@ document.addEventListener("keydown", (event) => {
             // Create and dispatch a keyup event
             const keyupEvent = new KeyboardEvent('keyup', eventOptions);
             element.dispatchEvent(keyupEvent);
-            encrypt(element, password, false);    
+            encrypt(element, false);    
         }
     } catch (Exception) {
         console.log(Exception);
@@ -69,25 +70,37 @@ document.querySelector(".x1y332i5").addEventListener("click", () => { // Contact
 
 async function decryptAllMessages() { 
     setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu'); // Messages ID   
+        const messageElements = document.querySelectorAll('._akbu')
+        let texts = []   
+        let indices = []
         for(let i = messageElements.length - 1; i >= 0; i-- ){
             const mainTextElement = messageElements[i].querySelector('._ao3e');
-            let text = mainTextElement.textContent
-            if(text.includes("ovniuBkIqd8t_"))
-                decrypt(mainTextElement, password);
+            let text = mainTextElement.textContent;
+            if(text.includes("ovniuBkIqd8t_")){
+                texts.push(text);
+                indices.push(i);
+            }      
         }
+        decryptList(messageElements,texts,indices);
     }, 500);
 }
 
 async function encryptBackMessages() {  
     setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu'); // Messages ID
+        const messageElements = document.querySelectorAll('._akbu');
+        let texts = []   
+        let indices = []
         for(let i = messageElements.length - 1; i >= 0; i-- ){
             const mainTextElement = messageElements[i].querySelector('._ao3e');
             let text = mainTextElement.textContent;
-            if(text.substring(text.length - 2) === "🔒")
-                encrypt(mainTextElement, password, true);
+            if(text.substring(text.length - 2) === "🔒"){
+                text = text.substring(0, text.length - 3);
+                texts.push(text);
+                indices.push(i);
+            }     
         }
+        encryptList(messageElements,texts,indices)
+
     }, 500);
 }
 
@@ -95,15 +108,19 @@ function observeClassChanges() {
     let chatBox = document.querySelector("._ajyl");
     const observer = new MutationObserver((mutations) => {
         if(isEnabled && mutations.length >= 3){
+            
             if(mutations.length > 10 && !firstPress){
                 document.querySelector(".x1y332i5").click();
                 firstPress = true;
             }
-            else{
+            else if(mutations.length < 10 && !ignore){
                 let list = document.querySelectorAll('._akbu');
-                let lastMessage = list[list.length-1]
-                decrypt(lastMessage.querySelector('._ao3e'), password)
-            } 
+                let lastMessage = list[list.length-1];
+                decrypt(lastMessage.querySelector('._ao3e'))
+                ignore = true;
+            }
+            else if(ignore)
+                ignore = false;
         }  
     });
     observer.observe(chatBox, {
@@ -113,7 +130,7 @@ function observeClassChanges() {
     });
 }
 
-function encrypt(element, password, isChats) {
+function encrypt(element, isChats) {
     if(element != null){
         let text = "";
         if(isChats) {
@@ -153,7 +170,26 @@ function encrypt(element, password, isChats) {
     }
 }
 
-function decrypt(element, password) {
+function encryptList(chats,text,indices){
+    
+    const data = { text, password };
+
+    fetch('http://127.0.0.1:5000/encryptList', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        for(let i = text.length-1; i >=0; i--)      
+            chats[indices[i]].querySelector('._ao3e').textContent = data[i];    
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function decrypt(element) {
     if(element != null){
         let text = element.textContent;
         const data = { text, password };
@@ -165,16 +201,33 @@ function decrypt(element, password) {
         })
         .then(response => response.json())
         .then(data => {
-            if (data !== "Wrong Password") {
+            if (data !== "Wrong Password")
                 element.textContent = data;
-            }
-            return data;
         })
         .catch(error => {
             console.error('Error:', error);
         });
     }
+}
+
+function decryptList(chats,text,indices){
     
+    const data = { text, password };
+
+    fetch('http://127.0.0.1:5000/decryptList', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        for(let i = text.length-1; i >=0; i--)      
+            if (data[i] !== "Wrong Password") 
+                chats[indices[i]].querySelector('._ao3e').textContent = data[i];    
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 })();

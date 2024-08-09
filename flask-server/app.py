@@ -35,6 +35,22 @@ def encrypt() -> str:
     return jsonify(urlsafe_b64encode(salt + iv + ciphertext).decode('utf-8'))
     
 
+@app.route('/encryptList', methods=['POST'])
+def encryptList() -> str:
+    data = request.json
+    messages = list(data['text'])
+    password = data['password']
+    result = []
+    for message in messages:
+        salt = b'\xa2\xf9\xe2\xb8\x19\x08\xa9\xdf-\xfd\xdd\x17+\xbeTx'  
+        key = derive_key(password, salt)  # Derive a key from the password and salt
+        iv = b';\xcbt\xaf4x\xec:T\xfc\x07\xc6\x1fKh\xdf'
+        cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(message.encode()) + encryptor.finalize()
+        result.append(urlsafe_b64encode(salt + iv + ciphertext).decode('utf-8'))
+    return jsonify(result)
+
 @app.route('/decrypt', methods=['POST'])
 def decrypt() -> str:
     try:
@@ -50,8 +66,29 @@ def decrypt() -> str:
         return jsonify(plaintext.decode('utf-8')+" 🔒")
     except (ValueError, KeyError):
         return jsonify("Wrong Password")
+    
 
+@app.route('/decryptList', methods=['POST'])
+def decryptList() -> str:
+    data = request.json
+    messages = list(data['text'])
+    password = data['password']
+    result = []
+    for message in messages:
+        try:
+            encrypted_data = urlsafe_b64decode(message)
+            salt = encrypted_data[:16]
+            iv = encrypted_data[16:32]
+            ciphertext = encrypted_data[32:]
+            key = derive_key(password, salt)
+            cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+            decryptor = cipher.decryptor()
+            plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+            result.append(plaintext.decode('utf-8')+" 🔒")
+        except (ValueError, KeyError):
+            result.append("Wrong Password")
 
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run()
