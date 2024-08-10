@@ -16,10 +16,12 @@ body {
 }
 
 #container {
+    padding-top: 90px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 90%;
+    width: 250px;
+    height: 190px;
 }
 
 form {
@@ -32,7 +34,7 @@ form {
 .password-container {
     display: flex;
     align-items: center;
-    width: 100%;
+    width: 220px;
     position: relative;
 }
 
@@ -173,4 +175,26 @@ button {
 
 button:hover {
     background-color: #2ab66e;
+}
+/* Styles for the instructions text area */
+#instructions {
+    margin-top:35px;
+    padding: 10px;
+    width: 250px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #CCCCCC;
+    background-color: #FFFFFF;
+    color: #000000;
+    resize: none;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* Dark mode styles for the instructions text area */
+body.dark-mode #instructions {
+    background-color: #2A2A2A;
+    border: 1px solid #4A4A4A;
+    color: #EDEDED;
 }

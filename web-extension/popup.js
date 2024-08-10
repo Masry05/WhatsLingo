@@ -37,7 +37,10 @@ document.getElementById('enableToggle').addEventListener('change', function(even
     let isEnabled = event.target.checked;
     let text = isEnabled ? 'Enabled' : 'Disabled'
     document.getElementById('toggleLabel').textContent = text;
-
+    if(isEnabled)
+        document.getElementById("instructions").style = "";
+    else
+        document.getElementById("instructions").style = "display: none;";
     chrome.storage.local.get(["password",'submitted',"status"], (result) => {
         let passwords = result['password'];
         const pref = {
@@ -52,10 +55,12 @@ document.getElementById('enableToggle').addEventListener('change', function(even
 document.getElementById('resetPassword').addEventListener("click", () => {
     
     document.getElementById('password').style = "";
+    document.getElementById('password').value = "";
     document.getElementById('passwordForm').style = "";
     document.querySelector(".switch-container").style = "display: none;";
     document.getElementById("resetPassword").style = "display: none;";
     document.getElementById("submitted").style = "display: none;";
+    document.getElementById("instructions").style = "display: none;";
 
     if(document.getElementById('toggleLabel').textContent == "Enabled")
         document.getElementById('enableToggle').click();
@@ -106,8 +111,10 @@ chrome.storage.local.get(["password",'submitted',"status"],(result)=>{
         document.getElementById("resetPassword").style="";
         document.querySelector(".switch-container").style="";
         
-        if(isEnabled)
+        if(isEnabled){
             document.getElementById('enableToggle').click();
+            document.getElementById("instructions").style = "";
+        }
         
     }
      

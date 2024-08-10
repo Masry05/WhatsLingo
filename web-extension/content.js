@@ -83,7 +83,8 @@ async function decryptAllMessages() {
                 indices.push(i);
             }      
         }
-        decryptList(messageElements,texts,indices);
+        if(isEnabled)
+            decryptList(messageElements,texts,indices);
     }, 500);
 }
 
