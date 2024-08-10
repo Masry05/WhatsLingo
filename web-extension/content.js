@@ -5,6 +5,7 @@ let submitted = false;
 let password = "";
 let firstPress = false;
 let ignore = false;
+let messageCounts = -1;
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     switch(message['status']) {
@@ -70,7 +71,8 @@ document.querySelector(".x1y332i5").addEventListener("click", () => { // Contact
 
 async function decryptAllMessages() { 
     setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu')
+        const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
+        messageCounts = messageElements.length;
         let texts = []   
         let indices = []
         for(let i = messageElements.length - 1; i >= 0; i-- ){
@@ -87,7 +89,8 @@ async function decryptAllMessages() {
 
 async function encryptBackMessages() {  
     setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu');
+        const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
+        messageCounts = messageElements.length;
         let texts = []   
         let indices = []
         for(let i = messageElements.length - 1; i >= 0; i-- ){
@@ -107,17 +110,18 @@ async function encryptBackMessages() {
 function observeClassChanges() {
     let chatBox = document.querySelector("._ajyl");
     const observer = new MutationObserver((mutations) => {
-        if(isEnabled && mutations.length >= 3){
-            
+        if(isEnabled && mutations.length >= 2){
             if(mutations.length > 10 && !firstPress){
                 document.querySelector(".x1y332i5").click();
                 firstPress = true;
             }
             else if(mutations.length < 10 && !ignore){
-                let list = document.querySelectorAll('._akbu');
-                let lastMessage = list[list.length-1];
-                decrypt(lastMessage.querySelector('._ao3e'))
-                ignore = true;
+                let list = document.querySelectorAll('._akbu:not(._akbw)');
+                if(messageCounts != -1 && messageCounts != list.length){
+                    let lastMessage = list[list.length-1];
+                    decrypt(lastMessage.querySelector('._ao3e'))
+                    ignore = true;
+                } 
             }
             else if(ignore)
                 ignore = false;
@@ -138,7 +142,7 @@ function encrypt(element, isChats) {
             if(text.substring(text.length - 2) === "🔒") {
                 text = text.substring(0, text.length - 3);
                 const data = { text, password };
-                fetch('http://127.0.0.1:5000/encrypt', {
+                fetch('https://masry.pythonanywhere.com/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -154,7 +158,7 @@ function encrypt(element, isChats) {
         } else {
             text = element.innerText;
             const data = { text, password };
-            fetch('http://127.0.0.1:5000/encrypt', {
+            fetch('https://masry.pythonanywhere.com/encrypt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -174,7 +178,7 @@ function encryptList(chats,text,indices){
     
     const data = { text, password };
 
-    fetch('http://127.0.0.1:5000/encryptList', {
+    fetch('https://masry.pythonanywhere.com/encryptList', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -194,7 +198,7 @@ function decrypt(element) {
         let text = element.textContent;
         const data = { text, password };
     
-        fetch('http://127.0.0.1:5000/decrypt', {
+        fetch('https://masry.pythonanywhere.com/decrypt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -214,7 +218,7 @@ function decryptList(chats,text,indices){
     
     const data = { text, password };
 
-    fetch('http://127.0.0.1:5000/decryptList', {
+    fetch('https://masry.pythonanywhere.com/decryptList', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
