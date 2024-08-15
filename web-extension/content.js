@@ -6,6 +6,7 @@ let password = "";
 let firstPress = false;
 let ignore = false;
 let messageCounts = -1;
+let scrollCounter = 0;
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     switch(message['status']) {
@@ -67,24 +68,22 @@ document.querySelector(".x1y332i5").addEventListener("click", () => { // Contact
         else
             encryptBackMessages()
     }
+    document.querySelector("._ajyl").addEventListener('scroll', ()=>{
+        scrollCounter++;
+        if(scrollCounter === 220){
+            decryptAllMessages();
+            scrollCounter = 0;
+        }
+            
+    });
 });
 
 async function decryptAllMessages() { 
     setTimeout(async () => {
         const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
         messageCounts = messageElements.length;
-        let texts = []   
-        let indices = []
-        for(let i = messageElements.length - 1; i >= 0; i-- ){
-            const mainTextElement = messageElements[i].querySelector('._ao3e');
-            let text = mainTextElement.textContent;
-            if(text.includes("ovniuBkIqd8t_")){
-                texts.push(text);
-                indices.push(i);
-            }      
-        }
         if(isEnabled)
-            decryptList(messageElements,texts,indices);
+            decryptList(messageElements);
     }, 500);
 }
 
@@ -92,18 +91,7 @@ async function encryptBackMessages() {
     setTimeout(async () => {
         const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
         messageCounts = messageElements.length;
-        let texts = []   
-        let indices = []
-        for(let i = messageElements.length - 1; i >= 0; i-- ){
-            const mainTextElement = messageElements[i].querySelector('._ao3e');
-            let text = mainTextElement.textContent;
-            if(text.substring(text.length - 2) === "🔒"){
-                text = text.substring(0, text.length - 3);
-                texts.push(text);
-                indices.push(i);
-            }     
-        }
-        encryptList(messageElements,texts,indices)
+        encryptList(messageElements)
 
     }, 500);
 }
@@ -140,99 +128,47 @@ function encrypt(element, isChats) {
         let text = "";
         if(isChats) {
             text = element.textContent;
-            if(text.substring(text.length - 2) === "🔒") {
-                text = text.substring(0, text.length - 3);
-                const data = { text, password };
-                fetch('https://masry.pythonanywhere.com/encrypt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    element.textContent = data;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            }
-        } else {
+            text = text.substring(0, text.length - 4);
+            const ciphertext = CryptoJS.AES.encrypt(text, password).toString();
+            element.textContent = ciphertext;
+        } 
+        else {
             text = element.innerText;
-            const data = { text, password };
-            fetch('https://masry.pythonanywhere.com/encrypt', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                navigator.clipboard.writeText(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            const ciphertext = CryptoJS.AES.encrypt(text, password).toString();
+            navigator.clipboard.writeText(ciphertext);
         }
     }
 }
 
-function encryptList(chats,text,indices){
+function encryptList(chats){
     
-    const data = { text, password };
-
-    fetch('https://masry.pythonanywhere.com/encryptList', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        for(let i = text.length-1; i >=0; i--)      
-            chats[indices[i]].querySelector('._ao3e').textContent = data[i];    
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    for(let i = chats.length-1; i >=0; i--){
+        let element = chats[i].querySelector('._ao3e')
+        let text = element.textContent;
+        if(text.substring(text.length - 2) === "🔒")
+            encrypt(element,true);
+    }
 }
 
 function decrypt(element) {
     if(element != null){
-        let text = element.textContent;
-        const data = { text, password };
-    
-        fetch('https://masry.pythonanywhere.com/decrypt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data !== "Wrong Password")
-                element.textContent = data;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        try{
+            let text = element.textContent;
+            const bytes = CryptoJS.AES.decrypt(text, password);
+            const originalText = bytes.toString(CryptoJS.enc.Utf8);
+            if (originalText.length !== 0)
+                element.textContent = originalText + "  🔒";
+        }
+        catch{
+
+        }
     }
 }
 
-function decryptList(chats,text,indices){
-    
-    const data = { text, password };
-
-    fetch('https://masry.pythonanywhere.com/decryptList', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        for(let i = text.length-1; i >=0; i--)      
-            if (data[i] !== "Wrong Password") 
-                chats[indices[i]].querySelector('._ao3e').textContent = data[i];    
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+function decryptList(chats){
+    for(let i = chats.length-1; i >=0; i--)
+        if(chats[i].querySelector('._ao3e').textContent.includes("U2FsdGV"))
+            decrypt(chats[i].querySelector('._ao3e'));
 }
 
 })();
