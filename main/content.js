@@ -55,6 +55,12 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
+window.addEventListener('focus', () => {
+    if(isEnabled)
+        decryptAllMessages();
+
+});
+
 document.querySelector(".x1y332i5").addEventListener("click", () => { // Contacts ID
     observeClassChanges();
     chrome.storage.local.get(['password', 'submitted', 'status'], function(result) {

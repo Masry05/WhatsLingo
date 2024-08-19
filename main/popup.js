@@ -1,5 +1,4 @@
 let flagReset = false;
-document.getElementById('modeToggle').click();
 
 document.getElementById('passwordForm').addEventListener('submit', function(event) {
     
@@ -92,11 +91,14 @@ document.getElementById('togglePassword').addEventListener('click', () => {
 
 chrome.storage.local.get(["password",'submitted',"status"],(result)=>{
     
-    const password = result['password'];
-    const submitted = result['submitted'] == "Yes";
-    const isEnabled = result['status'] == "Enabled";
+    let password = result['password'];
+    let submitted = result['submitted'] == "Yes";
+    let isEnabled = result['status'] == "Enabled";
 
     if(!submitted){
+        console.log(password);
+        if(password == undefined)
+            password = "";
         document.getElementById('password').value = password;
         document.getElementById('password').style = "";
         document.getElementById('passwordForm').style = "";
@@ -122,7 +124,13 @@ chrome.storage.local.get(["password",'submitted',"status"],(result)=>{
 
 // Initial load: Check for saved mode preference
 chrome.storage.local.get(["theme"], (result) => {
+    
     let isDarkMode = result['theme'] === "dark";
+    if(result['theme'] == undefined){
+        chrome.storage.local.set({ "theme": "dark"});
+        isDarkMode = true;
+    }
+
     document.body.classList.toggle('dark-mode', isDarkMode);
     document.getElementById('modeToggle').checked = isDarkMode;
     document.getElementById('modeLabel').textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
