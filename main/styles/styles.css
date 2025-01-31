@@ -2,8 +2,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    width: 300px;
-    height: 400px;
+    width: 320px;
+    height: 410px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -11,8 +11,8 @@ body {
     border-radius: 10px;
     color: #000000;
     background-image: url('../images/wallpaper_white.png');
-    background-size: cover;
     border: solid 5px #1daa61;;
+    
 }
 
 #container {
@@ -88,6 +88,7 @@ button:hover {
 .switch-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     margin-top: 20px;
 }
 
@@ -197,4 +198,136 @@ body.dark-mode #instructions {
     background-color: #2A2A2A;
     border: 1px solid #4A4A4A;
     color: #EDEDED;
+}
+#popup-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.section-title {
+    margin-left: 43px;
+}
+
+.user-section {
+    margin-top: -50px;
+    margin-left: -7px;
+    width: 45%;
+    padding: 10px;
+    height: 250px;
+}
+
+.receiver-gender-selection{
+    margin-left: 5px;
+}
+
+.gender-selection {
+    display: flex;
+    width: 150px;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.gender-icon-male {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin-bottom: 3px;
+    margin-left : 10px;
+}
+
+.gender-icon-female {
+    width: 27px;
+    height: 35px;
+    cursor: pointer;
+    margin-top  : -3px;
+    margin-bottom: 3px;
+    margin-left : 2px;
+}
+
+.gender-label {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-left: -40px;
+}
+
+.language-dropdown, .dialect-container select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #1daa61;
+    border-radius: 6px;
+    background-color: white;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231daa61' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.language-dropdown:hover, .dialect-container select:hover {
+    border-color: #2ab66e;
+    box-shadow: 0 0 5px rgba(29, 170, 97, 0.2);
+}
+
+.language-dropdown:focus, .dialect-container select:focus {
+    outline: none;
+    border-color: #2ab66e;
+    box-shadow: 0 0 5px rgba(29, 170, 97, 0.3);
+}
+
+.dialect-container {
+    margin-top: 10px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.dialect-container.slide-down {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Dark mode styles */
+.dark-mode .language-dropdown,
+.dark-mode .dialect-container select {
+    background-color: #2A2A2A;
+    color: #EDEDED;
+    border-color: #1daa61;
+}
+
+.dark-mode .language-dropdown:hover,
+.dark-mode .dialect-container select:hover {
+    border-color: #2ab66e;
+    box-shadow: 0 0 5px rgba(29, 170, 97, 0.4);
+}
+
+.dark-mode .language-dropdown:focus,
+.dark-mode .dialect-container select:focus {
+    border-color: #2ab66e;
+    box-shadow: 0 0 5px rgba(29, 170, 97, 0.5);
+}
+
+#common-section {
+    margin-top: 5px;
+    text-align: center;
+    width: 100%;
+    height: 60px;
+}
+
+#common-section label {
+    font-size: 16px;
+}
+
+.language-dropdown{
+    width: 150px;
+    margin-left: -2px;
+    margin-right: 5px;
 }

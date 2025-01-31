@@ -3,23 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Popup</title>
+    <title>Language Selector</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
-    <div id="container">
-        <form id="passwordForm">
-            <label for="password">Enter Password:</label>
-            <div class="password-container">
-                <input type="password" id="password" name="password" required>
-                <button type="button" id="togglePassword" aria-label="Show password">
-                    <img src="images/open_eye_white.png" alt="Show" id="eyeIcon">
-                </button>
+    <div id="popup-container">
+        <div id="sender-section" class="user-section">
+            <h2 class="section-title">User</h2>
+            <div class="gender-selection">
+                <label class="gender-label">
+                    <img src="images/male.png" alt="Male" class="gender-icon-male">
+                    <input type="radio" name="sender-gender" id="sender-male" value="male">
+                </label>
+                <label class="gender-label">
+                    <img src="images/female.png" alt="Female" class="gender-icon-female">
+                    <input type="radio" name="sender-gender" id="sender-female" value="female">
+                </label>
             </div>
-            <button type="submit">Submit</button>
-        </form>
-        <label id="submitted" style="display: none;">Password has been set</label>
-        <button id="resetPassword" style="display: none;">Reset password</button>
+            <label for="sender-language">Language:</label>
+            <select id="sender-language" class="language-dropdown">
+                <option value="">Select a language</option>
+                <option value="English">English</option>
+                <option value="Arabic">Arabic</option>
+                <option value="French">French</option>
+                <option value="Spanish">Spanish</option>
+                <option value="German">German</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Italian">Italian</option>
+                <option value="Dutch">Dutch</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Urdu">Urdu</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Korean">Korean</option>
+                <option value="Russian">Russian</option>
+                <option value="Turkish">Turkish</option>
+            </select>
+            <div id="sender-dialect-container" class="dialect-container" style="display: none;">
+                <label for="sender-dialect">Dialect:</label>
+                <select id="sender-dialect">
+                    <option value="MSA">MSA</option>
+                    <option value="Egypt">Egyptian</option>
+                    <option value="Moroccan">Moroccan</option>
+                    <option value="Algerian">Algerian</option>
+                    <option value="Tunisian">Tunisian</option>
+                    <option value="Libyan">Libyan</option>
+                    <option value="Sudanese">Sudanese</option>
+                    <option value="Syrian">Syrian</option>
+                    <option value="Lebanese">Lebanese</option>
+                    <option value="Palestinian">Palestinian</option>
+                    <option value="Jordanian">Jordanian</option>
+                    <option value="Saudi">Saudi</option>
+                    <option value="Kuwaiti">Kuwaiti</option>
+                    <option value="Bahraini">Bahraini</option>
+                    <option value="Qatari">Qatari</option>
+                    <option value="Emirati">Emirati</option>
+                    <option value="Omani">Omani</option>
+                    <option value="Yemeni">Yemeni</option>
+                    <option value="Iraqi">Iraqi</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="receiver-section" class="user-section">
+            <h2 class="section-title">Peer</h2>
+            <div class="gender-selection receiver-gender-selection">
+                <label class="gender-label">
+                    <img src="images/male.png" alt="Male" class="gender-icon-male">
+                    <input type="radio" name="receiver-gender" id="receiver-male" value="male">
+                </label>
+                <label class="gender-label">
+                    <img src="images/female.png" alt="Female" class="gender-icon-female">
+                    <input type="radio" name="receiver-gender" id="receiver-female" value="female">
+                </label>
+            </div>
+            <label for="receiver-language">Language:</label>
+            <select id="receiver-language" class="language-dropdown">
+                <option value="">Select a language</option>
+                <option value="English">English</option>
+                <option value="Arabic">Arabic</option>
+                <option value="French">French</option>
+                <option value="Spanish">Spanish</option>
+                <option value="German">German</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Italian">Italian</option>
+                <option value="Dutch">Dutch</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Urdu">Urdu</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Korean">Korean</option>
+                <option value="Russian">Russian</option>
+                <option value="Turkish">Turkish</option>
+            </select>
+            <div id="receiver-dialect-container" class="dialect-container" style="display: none;">
+                <label for="receiver-dialect">Dialect:</label>
+                <select id="receiver-dialect">
+                    <option value="MSA">MSA</option>
+                    <option value="Egyptian">Egyptian</option>
+                    <option value="Moroccan">Moroccan</option>
+                    <option value="Algerian">Algerian</option>
+                    <option value="Tunisian">Tunisian</option>
+                    <option value="Libyan">Libyan</option>
+                    <option value="Sudanese">Sudanese</option>
+                    <option value="Syrian">Syrian</option>
+                    <option value="Lebanese">Lebanese</option>
+                    <option value="Palestinian">Palestinian</option>
+                    <option value="Jordanian">Jordanian</option>
+                    <option value="Saudi">Saudi</option>
+                    <option value="Kuwaiti">Kuwaiti</option>
+                    <option value="Bahraini">Bahraini</option>
+                    <option value="Qatari">Qatari</option>
+                    <option value="Emirati">Emirati</option>
+                    <option value="Omani">Omani</option>
+                    <option value="Yemeni">Yemeni</option>
+                    <option value="Iraqi">Iraqi</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mode-switch-container">
+            <label class="switch">
+                <input type="checkbox" id="modeToggle">
+                <span class="slider round"></span>
+            </label>
+            <span id="modeLabel">Dark Mode</span>
+        </div>
+    </div>
+
+    <div id="common-section">
+        <label>
+            <input type="checkbox" id="formal-checkbox" > Formal
+        </label>
+        <label id="franco-label" style="display: none;">
+            <input type="checkbox" id="franco-checkbox"> Franco
+        </label>
         <div class="switch-container" style="display: none;">
             <label class="switch">
                 <input type="checkbox" id="enableToggle">
@@ -27,16 +145,7 @@
             </label>
             <span id="toggleLabel">Disabled</span>
         </div>
-        <textarea id="instructions" style="display: none;" readonly>Before sending your message, press F2 then Ctrl + V</textarea>
     </div>
-    <div class="mode-switch-container">
-        <label class="switch">
-            <input type="checkbox" id="modeToggle">
-            <span class="slider round"></span>
-        </label>
-        <span id="modeLabel">Dark Mode</span>
-    </div>
-    
     <script src="popup.js"></script>
 </body>
 </html>

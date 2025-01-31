@@ -1,36 +1,384 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize the AI
+const apiKey = process.env.GOOGLE_API_KEY;
+let model;
+if (!apiKey) {
+    console.error("API key not found!");
+} else {
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+        console.log("AI initialized successfully");
+    } catch (error) {
+        console.error("Error initializing AI:", error);
+    }
+}
+
 (function() {
 
-let isEnabled = false;
-let submitted = false;
-let password = "";
-let firstPress = false;
-let ignore = false;
-let messageCounts = -1;
-let scrollCounter = 0;
+    let senderLanguage = '';
+    let senderDialect = '';
+    let senderGender = '';
+    let receiverLanguage = '';
+    let receiverDialect = '';
+    let receiverGender = '';
+    let isFormal = false;
+    let isEnabled = false;
+    let isFranco = false;
+    let status = false; // True if translation is in progress
+    let currentLanguage = '';
+    let currentDialect = '';
+    let chats = []; // Changed from Set to Array
+    let chatObserver = null;
+    let classObserver = null;  // New observer for class changes
+    let originalChats = [];
+    let seenMessage = '';
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    switch(message['status']) {
+    
+
+    // Function to initialize or update the chat observer
+    function initializeChatObserver() {
+        //if(isEnabled)
+            //translate();
+        // Get the chat container and observe for new messages
+        const chatContainer = document.querySelector('div[role="application"]');
+        if (!chatContainer) {
+            console.log('Chat container not found, will retry...');
+            return;
+        }
+
+        // Create observer for new messages
+        chatObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) { // Check if it's an element node
+                        const messages = node.classList?.contains('_akbu') ? 
+                            [node] : 
+                            Array.from(node.getElementsByClassName('_akbu'));
+                        
+                        messages.forEach(msg => {
+                            // Only add if not already in the array
+                            if (!chats.includes(msg)) {
+                                chats.push(msg);
+                                console.log('New message added to cache');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        // Start observing for new messages
+        chatObserver.observe(chatContainer, { childList: true, subtree: true });
+
+        // Cache existing messages
+        const initialMessages = document.getElementsByClassName('_akbu');
+        Array.from(initialMessages).forEach(msg => {
+            if (!chats.includes(msg)) {
+                chats.push(msg);
+            }
+        });
+        console.log('Initial messages cached:', chats.length);
+
+        // Find all elements with _amj_ class and observe for x17t9dm2
+        const amjElements = document.querySelectorAll('._amj_');
         
-        case "Enabled":
-            isEnabled = true;
-            decryptAllMessages();           
-            break;
+        amjElements.forEach(element => {
+            if (element && !element.dataset.observing) {
+                element.dataset.observing = 'true';
+                
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'childList') {
+                            const hasX17 = element.querySelector('.x17t9dm2');
+                            const existingEye = element.querySelector('.eye-button');
+                            
+                            // Only proceed if we have a valid x17 element and isEnabled is true
+                            if (hasX17 && isEnabled && !existingEye) {
+                                const index = getMessageIndex(hasX17);
+                                const eyeButton = document.createElement('img');
+                                eyeButton.className = 'eye-button';
+                                eyeButton.style.cursor = 'pointer';
+                                eyeButton.style.marginLeft = '5px';
+                                eyeButton.style.width = '20px';
+                                eyeButton.style.height = '20px';
+                                eyeButton.style.display = 'inline-block';
+                                eyeButton.style.verticalAlign = 'middle';
+                                eyeButton.dataset.state = 'closed';
+                                
+                                if(index !== -1){
+                                    // Load extension images
+                                    const loadImage = (name) => {
+                                        return chrome.runtime.getURL(`images/${name}`);
+                                    };
 
-        case "Disabled":
-            isEnabled = false;
-            encryptBackMessages();
-            break;
-
+                                    // Set initial image and styles
+                                    eyeButton.src = loadImage('closed_eye_white.png');
+                                    
+                                    // Debug image loading
+                                    eyeButton.onerror = () => {
+                                        console.error('Failed to load eye image:', eyeButton.src);
+                                        eyeButton.style.backgroundColor = 'white';
+                                        eyeButton.style.padding = '2px';
+                                        eyeButton.style.borderRadius = '50%';
+                                    };
+                                    eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
+                                    if (index !== -1) {
+                                        const messageElement = chats[index].querySelector('._ao3e');
+                                        if (messageElement) {
+                                            seenMessage = messageElement.textContent; // Store the original message
+                                        }
+                                        
+                                        // Add click event listener
+                                        eyeButton.addEventListener('click', () => {
+                                            if (eyeButton.dataset.state === 'closed') {
+                                                seeOriginal(index);
+                                                eyeButton.src = loadImage('open_eye_white.png');
+                                                eyeButton.dataset.state = 'open';
+                                            } else {
+                                                unSeeOriginal(index);
+                                                eyeButton.src = loadImage('closed_eye_white.png');
+                                                eyeButton.dataset.state = 'closed';
+                                            }
+                                        });
+                                    }
+                                    
+                                    element.appendChild(eyeButton);
+                                }
+                            } 
+                            // Handle eye removal when x17t9dm2 is gone or isEnabled becomes false
+                            else if ((!hasX17 || !isEnabled) && existingEye) {
+                                const index = getMessageIndex(element);
+                                if (index !== -1) {
+                                    const messageElement = chats[index].querySelector('._ao3e');
+                                    if (messageElement && seenMessage && existingEye.dataset.state === 'open') {
+                                        messageElement.textContent = seenMessage;
+                                    }
+                                }
+                                existingEye.remove();
+                            }
+                        }
+                    });
+                });
+                
+                observer.observe(element, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
     }
-    password  = message['password'];
-    submitted = message['submitted'] === "Yes" ? true : false;
-    isEnabled = message['status'] === "Enabled" ? true : false;
-});
 
-document.addEventListener("keydown", (event) => {
-    try {
-        let element = document.querySelector("._ak1l").querySelector(".x15bjb6t").querySelector(".selectable-text")
-        if(event.key === 'F2' && element !== null && isEnabled) {
+    // Function to find the index of _akbu element that shares the same _amk4 parent
+    function getMessageIndex(x17Element) {
+        // Return -1 if element is null or undefined
+        if (!x17Element) {
+            console.log('Invalid element passed to getMessageIndex');
+            return -1;
+        }
+        
+        // Find the parent _amk4 element
+        const parentAmk4 = x17Element.closest('._amk4');
+        if (!parentAmk4) {
+            console.log('No _amk4 parent found');
+            return -1;
+        }
+
+        // Get the target akbu element
+        const akbuElement = parentAmk4.querySelector('._akbu');
+        if (!akbuElement) {
+            console.log('No _akbu element found');
+            return -1;
+        }
+
+        // Find its index in the chats array
+        const index = chats.indexOf(akbuElement);
+        console.log('Found _akbu element at index:', index);
+        return index;
+    }
+
+    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+        try {
+            // Update all variables from the message
+            isEnabled = message.isEnabled ?? isEnabled;
+            isFormal = message.isFormal ?? isFormal;
+            isFranco = message.isFranco ?? isFranco;
+            senderLanguage = message.senderLanguage ?? senderLanguage;
+            senderDialect = message.senderDialect ?? senderDialect;
+            senderGender = message.senderGender ?? senderGender;
+            receiverLanguage = message.receiverLanguage ?? receiverLanguage;
+            receiverDialect = message.receiverDialect ?? receiverDialect;
+            receiverGender = message.receiverGender ?? receiverGender;
+            
+            // Call appropriate function based on isEnabled
+            if(status || isEnabled){
+                if (isEnabled) {
+                    translate();
+                } else {
+                    revert();
+                }
+            }
+            if((currentLanguage != senderLanguage || currentDialect != senderDialect) && status && isEnabled){
+                revert();
+                translate();
+            }
+
+            // Send success response
+            sendResponse({ success: true });
+        } catch (error) {
+            console.error('Error processing message:', error);
+            sendResponse({ success: false, error: error.message });
+        }
+        return true; // Keep the message channel open for async response
+    });
+
+    // Function to wait for an element to be present in the DOM
+    function waitForElement(selector) {
+        return new Promise(resolve => {
+            if (document.querySelector(selector)) {
+                return resolve(document.querySelector(selector));
+            }
+
+            const observer = new MutationObserver(mutations => {
+                if (document.querySelector(selector)) {
+                    observer.disconnect();
+                    resolve(document.querySelector(selector));
+                }
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    }
+
+    // Function to get text content including emojis
+    function getMessageContent(element) {
+        if (!element) return '';
+        
+        let fullText = '';
+        const messageSpan = element.querySelector('._ao3e');
+        if (!messageSpan) return element.innerText || '';
+        
+        // Process all child nodes
+        function processNode(node) {
+            if (!node) return;
+            
+            if (node.nodeType === Node.TEXT_NODE) {
+                fullText += node.textContent || '';
+            } else if (node.nodeName === 'IMG' && node.classList?.contains('emoji')) {
+                fullText += node.getAttribute('data-plain-text') || '';
+            } else if (node.childNodes && node.childNodes.length > 0) {
+                node.childNodes.forEach(child => {
+                    if (child) processNode(child);
+                });
+            }
+        }
+
+        processNode(messageSpan);
+        return fullText || messageSpan.innerText || '';
+    }
+
+    // Initialize contact click listener
+    async function initializeContactListener() {
+        try {
+            const contactElement = await waitForElement(".x1y332i5");
+            console.log('Contact element found');
+            
+            contactElement.addEventListener("click", () => {
+                console.log('Contact clicked');
+                revert();
+                chats = [];
+                originalChats = [];
+                // Initialize or reinitialize the observer
+                setTimeout(initializeChatObserver, 1000); // Give WhatsApp a moment to load the chats
+            });
+        } catch (error) {
+            console.error('Error setting up contact listener:', error);
+        }    
+    }
+
+    // Start the initialization
+    initializeContactListener();
+
+    async function translate() {
+        console.log('Translating messages...', chats.length);
+        let toBeTranslated = [];
+        let last = originalChats.length
+        for(let i=last; i<chats.length; i++){
+            const messageContent = getMessageContent(chats[i]);
+            originalChats.push(messageContent);
+            toBeTranslated.push(messageContent);
+        }
+       
+        if(currentLanguage != senderLanguage || currentDialect != senderDialect || !status){
+            toBeTranslated = originalChats;
+            currentLanguage = senderLanguage;
+            currentDialect = senderDialect;
+            last = 0;
+        }
+        console.log(originalChats);
+        console.log(toBeTranslated);
+        if(toBeTranslated.length == 0){
+            console.log('No new messages to translate');
+            return;
+        }
+        const prompt = `Translate the following list of chats (given in the form ["chat1","chat2","chat3"] and output them in the same form exactly and NO EXTRA SPACES) from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation): [${toBeTranslated.map(chat=> `" ${chat} "`).join(',')}]`;
+        console.log(prompt);
+        let result;
+        try {
+            result = await model.generateContent(prompt);
+            console.log(result.response.text());
+        } 
+        catch (error) {
+            status = false;
+            setTimeout(translate(), 1000);
+            return;
+        }
+        let resultChats = result.response.text();
+        resultChats =fixOutputFormat(resultChats); 
+        for(let i=0; i<resultChats.length; i++,last++)
+            if(!chats[i].classList.contains('_akbw'))
+                chats[last].querySelector('._ao3e').textContent = resultChats[i];
+            
+        status = true;
+        console.log("Translated successfully");
+    }
+
+    function revert() {
+        console.log('Reverting messages...', chats.length);
+        if(originalChats.length != chats.length)
+            return;
+        for(let i = 0; i<chats.length; i++)
+            if(!chats[i].classList.contains('_akbw'))
+                chats[i].querySelector('._ao3e').textContent = originalChats[i];
+        status = false;
+        console.log('Reverted messages');
+    }
+    document.addEventListener("keydown", (event) => {
+        try {
+            let element = document.querySelector("._ak1r").querySelector(".x15bjb6t").querySelector(".selectable-text")
+            if(event.key === 'F2' && element !== null && isEnabled) {
+                console.log('F2 pressed');
+                translateSender(element);    
+            }
+        } catch (Exception) {
+            console.log(Exception);
+        }
+    });
+    async function translateSender(element){
+        const text = getMessageContent(element.parentElement);
+        const prompt = `Translate the following text from person S to person R , to ${receiverLanguage == 'Arabic' ? receiverDialect : ''} ${isFranco && receiverLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${receiverLanguage} ${isFormal?'and make the translation formal':''} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (ONLY output the translation and if the text is already in the target language then leave it as it is AND DONT ADD ANY ADDITIONAL SPACE): ${text}`;
+        console.log(prompt);
+        let result;
+        try {
+            result = await model.generateContent(prompt);
+            let resultText = result.response.text();
+            if(resultText.charAt(resultText.length - 1) === '\n' || resultText.charAt(resultText.length - 1) === ' ')
+                resultText = resultText.slice(0, -1);
+            navigator.clipboard.writeText(resultText);
             const eventOptions = { 
                 bubbles: true, 
                 cancelable: true, 
@@ -48,133 +396,35 @@ document.addEventListener("keydown", (event) => {
             // Create and dispatch a keyup event
             const keyupEvent = new KeyboardEvent('keyup', eventOptions);
             element.dispatchEvent(keyupEvent);
-            encrypt(element, false);    
+        } 
+        catch (error) {
+            return navigator.clipboard.writeText(text + ", Try again in a few seconds.");
         }
-    } catch (Exception) {
-        console.log(Exception);
     }
-});
-
-window.addEventListener('focus', () => {
-    if(isEnabled)
-        decryptAllMessages();
-
-});
-
-document.querySelector(".x1y332i5").addEventListener("click", () => { // Contacts ID
-    observeClassChanges();
-    chrome.storage.local.get(['password', 'submitted', 'status'], function(result) {
-        password = result['password'];
-        submitted = result['submitted'] === "Yes" ? true : false;
-        isEnabled = result['status'] === "Enabled" ? true : false;
-    });
-    if(submitted){
-        if(isEnabled)
-            decryptAllMessages()
-        else
-            encryptBackMessages()
+    function fixOutputFormat(output) {
+        let start = 0;
+        let end = 0;
+        for(let i = 0; i<output.length; i++)
+            if(output.charAt(i) == `"`){
+                start = i+1;
+                break;
+            }     
+        for(let i = output.length-1; i>=0; i--)
+            if(output.charAt(i) == `"`){
+                end = i;
+                break;
+            }
+        return output.substring(start, end).split(`","`);
     }
-    document.querySelector("._ajyl").addEventListener('scroll', ()=>{
-        scrollCounter++;
-        if(scrollCounter === 220){
-            decryptAllMessages();
-            scrollCounter = 0;
+    function seeOriginal(index) {
+        if(index >= 0 && index < chats.length){
+            seenMessage = chats[index].querySelector('._ao3e').textContent;
+            chats[index].querySelector('._ao3e').textContent = originalChats[index];
         }
             
-    });
-});
-
-async function decryptAllMessages() { 
-    setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
-        messageCounts = messageElements.length;
-        if(isEnabled)
-            decryptList(messageElements);
-    }, 500);
-}
-
-async function encryptBackMessages() {  
-    setTimeout(async () => {
-        const messageElements = document.querySelectorAll('._akbu:not(._akbw)');
-        messageCounts = messageElements.length;
-        encryptList(messageElements)
-
-    }, 500);
-}
-
-function observeClassChanges() {
-    let chatBox = document.querySelector("._ajyl");
-    const observer = new MutationObserver((mutations) => {
-        if(isEnabled && mutations.length >= 2){
-            if(mutations.length > 10 && !firstPress){
-                document.querySelector(".x1y332i5").click();
-                firstPress = true;
-            }
-            else if(mutations.length < 10 && !ignore){
-                let list = document.querySelectorAll('._akbu:not(._akbw)');
-                if(messageCounts != -1 && messageCounts != list.length){
-                    let lastMessage = list[list.length-1];
-                    decrypt(lastMessage.querySelector('._ao3e'))
-                    ignore = true;
-                } 
-            }
-            else if(ignore)
-                ignore = false;
-        }  
-    });
-    observer.observe(chatBox, {
-        attributes: false,
-        childList: true,
-        subtree: true
-    });
-}
-
-function encrypt(element, isChats) {
-    if(element != null){
-        let text = "";
-        if(isChats) {
-            text = element.textContent;
-            text = text.substring(0, text.length - 4);
-            const ciphertext = CryptoJS.AES.encrypt(text, password).toString();
-            element.textContent = ciphertext;
-        } 
-        else {
-            text = element.innerText;
-            const ciphertext = CryptoJS.AES.encrypt(text, password).toString();
-            navigator.clipboard.writeText(ciphertext);
-        }
     }
-}
-
-function encryptList(chats){
-    
-    for(let i = chats.length-1; i >=0; i--){
-        let element = chats[i].querySelector('._ao3e')
-        let text = element.textContent;
-        if(text.substring(text.length - 2) === "🔒")
-            encrypt(element,true);
+    function unSeeOriginal(index) {
+        if(!chats[index].classList.contains('_akbw'))
+            chats[index].querySelector('._ao3e').textContent = seenMessage;
     }
-}
-
-function decrypt(element) {
-    if(element != null){
-        try{
-            let text = element.textContent;
-            const bytes = CryptoJS.AES.decrypt(text, password);
-            const originalText = bytes.toString(CryptoJS.enc.Utf8);
-            if (originalText.length !== 0)
-                element.textContent = originalText + "  🔒";
-        }
-        catch{
-
-        }
-    }
-}
-
-function decryptList(chats){
-    for(let i = chats.length-1; i >=0; i--)
-        if(chats[i].querySelector('._ao3e').textContent.includes("U2FsdGV"))
-            decrypt(chats[i].querySelector('._ao3e'));
-}
-
 })();
