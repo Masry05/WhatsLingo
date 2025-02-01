@@ -39,8 +39,6 @@ if (!apiKey) {
 
     // Function to initialize or update the chat observer
     function initializeChatObserver() {
-        //if(isEnabled)
-            //translate();
         // Get the chat container and observe for new messages
         const chatContainer = document.querySelector('div[role="application"]');
         if (!chatContainer) {
@@ -57,13 +55,17 @@ if (!apiKey) {
                             [node] : 
                             Array.from(node.getElementsByClassName('_akbu'));
                         
+                        let flag = false;
                         messages.forEach(msg => {
                             // Only add if not already in the array
                             if (!chats.includes(msg)) {
                                 chats.push(msg);
-                                console.log('New message added to cache');
+                                flag = true;
+                                console.log('New message added to cache');      
                             }
                         });
+                        if(isEnabled && flag)
+                            translate();
                     }
                 });
             });
@@ -81,6 +83,9 @@ if (!apiKey) {
         });
         console.log('Initial messages cached:', chats.length);
 
+        if(isEnabled)
+            translate();
+
         // Find all elements with _amj_ class and observe for x17t9dm2
         const amjElements = document.querySelectorAll('._amj_');
         
@@ -95,7 +100,7 @@ if (!apiKey) {
                             const existingEye = element.querySelector('.eye-button');
                             
                             // Only proceed if we have a valid x17 element and isEnabled is true
-                            if (hasX17 && isEnabled && !existingEye) {
+                            if (hasX17 && status && !existingEye) {
                                 const index = getMessageIndex(hasX17);
                                 const eyeButton = document.createElement('img');
                                 eyeButton.className = 'eye-button';
@@ -148,7 +153,7 @@ if (!apiKey) {
                                 }
                             } 
                             // Handle eye removal when x17t9dm2 is gone or isEnabled becomes false
-                            else if ((!hasX17 || !isEnabled) && existingEye) {
+                            else if ((!hasX17 || !status) && existingEye) {
                                 const index = getMessageIndex(element);
                                 if (index !== -1) {
                                     const messageElement = chats[index].querySelector('._ao3e');
