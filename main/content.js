@@ -131,8 +131,8 @@ if (!apiKey) {
                                 eyeButton.className = 'eye-button';
                                 eyeButton.style.cursor = 'pointer';
                                 eyeButton.style.marginLeft = '5px';
-                                eyeButton.style.width = '20px';
-                                eyeButton.style.height = '20px';
+                                eyeButton.style.width = '15px';
+                                eyeButton.style.height = '15px';
                                 eyeButton.style.display = 'inline-block';
                                 eyeButton.style.verticalAlign = 'middle';
                                 eyeButton.dataset.state = 'closed';
@@ -142,7 +142,7 @@ if (!apiKey) {
                                 backgroundCircle.style.position = 'absolute';
                                 backgroundCircle.style.width = '28px';
                                 backgroundCircle.style.height = '28px';
-                                backgroundCircle.style.backgroundColor = '#8696a0';
+                                backgroundCircle.style.backgroundColor = '#000000';
                                 backgroundCircle.style.opacity = '0.1';
                                 backgroundCircle.style.borderRadius = '50%';
                                 backgroundCircle.style.transform = 'translate(-4px, -4px)';
@@ -151,16 +151,23 @@ if (!apiKey) {
                                 // Create container for eye and background
                                 const container = document.createElement('div');
                                 container.style.position = 'relative';
-                                container.style.display = 'inline-block';
+                                container.style.display = 'inline-flex';
+                                container.style.alignItems = 'center';
+                                container.style.justifyContent = 'center';
                                 container.appendChild(backgroundCircle);
-                                
+
+                                // Update eye button styles for better centering
+                                eyeButton.style.position = 'relative';
+                                eyeButton.style.margin = '0';
+                                eyeButton.style.padding = '4px';
+
                                 // Load extension images
                                 const loadImage = (name) => {
                                     return chrome.runtime.getURL(`images/${name}`);
                                 };
 
                                 // Set initial image and styles
-                                eyeButton.src = loadImage('closed_eye_white.png');
+                                eyeButton.src = loadImage('globe_white_crossed.png');
                                 
                                 // Debug image loading
                                 eyeButton.onerror = () => {
@@ -180,11 +187,11 @@ if (!apiKey) {
                                 eyeButton.addEventListener('click', () => {
                                     if (eyeButton.dataset.state === 'closed') {
                                         seeOriginal(index);
-                                        eyeButton.src = loadImage('open_eye_white.png');
+                                        eyeButton.src = loadImage('globe_white.png');
                                         eyeButton.dataset.state = 'open';
                                     } else {
                                         unSeeOriginal(index);
-                                        eyeButton.src = loadImage('closed_eye_white.png');
+                                        eyeButton.src = loadImage('globe_white_crossed.png');
                                         eyeButton.dataset.state = 'closed';
                                     }
                                 });
@@ -353,6 +360,8 @@ if (!apiKey) {
     initializeContactListener();
 
     async function translate() {
+        if(senderLanguage == '')
+            return;
         console.log('Translating messages...', chats.length);
         let toBeTranslated = [];
         let last = originalChats.length
