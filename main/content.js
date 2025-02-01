@@ -46,6 +46,9 @@ if (!apiKey) {
             return;
         }
 
+        let batchTimeout = null;
+        let newMessagesInBatch = false;
+
         // Create observer for new messages
         chatObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -55,24 +58,40 @@ if (!apiKey) {
                             [node] : 
                             Array.from(node.getElementsByClassName('_akbu'));
                         
-                        let flag = false;
                         messages.forEach(msg => {
                             // Only add if not already in the array
                             if (!chats.includes(msg)) {
                                 chats.push(msg);
-                                flag = true;
+                                newMessagesInBatch = true;
                                 console.log('New message added to cache');      
                             }
                         });
-                        if(isEnabled && flag)
-                            translate();
                     }
                 });
             });
+
+            // Clear existing timeout if any
+            if (batchTimeout) {
+                clearTimeout(batchTimeout);
+            }
+
+            // Set new timeout to handle the batch
+            batchTimeout = setTimeout(() => {
+                if (newMessagesInBatch && isEnabled) {
+                    console.log('Processing batch of new messages');
+                    translate();
+                    initializeMessageObservers();
+                    newMessagesInBatch = false;
+                }
+            }, 500); // Wait for 500ms after last mutation before processing batch
         });
 
         // Start observing for new messages
-        chatObserver.observe(chatContainer, { childList: true, subtree: true });
+        chatObserver.observe(chatContainer, { 
+            childList: true, 
+            subtree: true,
+            characterData: true
+        });
 
         // Cache existing messages
         const initialMessages = document.getElementsByClassName('_akbu');
@@ -83,9 +102,14 @@ if (!apiKey) {
         });
         console.log('Initial messages cached:', chats.length);
 
-        if(isEnabled)
+        if(isEnabled) {
             translate();
+        }
+    }
 
+    // Function to initialize observers for messages
+    function initializeMessageObservers() {
+        console.log('Initializing message observers');
         // Find all elements with _amj_ class and observe for x17t9dm2
         const amjElements = document.querySelectorAll('._amj_');
         
@@ -99,9 +123,10 @@ if (!apiKey) {
                             const hasX17 = element.querySelector('.x17t9dm2');
                             const existingEye = element.querySelector('.eye-button');
                             
-                            // Only proceed if we have a valid x17 element and isEnabled is true
                             if (hasX17 && status && !existingEye) {
                                 const index = getMessageIndex(hasX17);
+                                if(index === -1) return;
+
                                 const eyeButton = document.createElement('img');
                                 eyeButton.className = 'eye-button';
                                 eyeButton.style.cursor = 'pointer';
@@ -112,47 +137,61 @@ if (!apiKey) {
                                 eyeButton.style.verticalAlign = 'middle';
                                 eyeButton.dataset.state = 'closed';
                                 
-                                if(index !== -1){
-                                    // Load extension images
-                                    const loadImage = (name) => {
-                                        return chrome.runtime.getURL(`images/${name}`);
-                                    };
+                                // Create background circle
+                                const backgroundCircle = document.createElement('div');
+                                backgroundCircle.style.position = 'absolute';
+                                backgroundCircle.style.width = '28px';
+                                backgroundCircle.style.height = '28px';
+                                backgroundCircle.style.backgroundColor = '#8696a0';
+                                backgroundCircle.style.opacity = '0.1';
+                                backgroundCircle.style.borderRadius = '50%';
+                                backgroundCircle.style.transform = 'translate(-4px, -4px)';
+                                backgroundCircle.style.zIndex = '-1';
 
-                                    // Set initial image and styles
-                                    eyeButton.src = loadImage('closed_eye_white.png');
-                                    
-                                    // Debug image loading
-                                    eyeButton.onerror = () => {
-                                        console.error('Failed to load eye image:', eyeButton.src);
-                                        eyeButton.style.backgroundColor = 'white';
-                                        eyeButton.style.padding = '2px';
-                                        eyeButton.style.borderRadius = '50%';
-                                    };
-                                    eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
-                                    if (index !== -1) {
-                                        const messageElement = chats[index].querySelector('._ao3e');
-                                        if (messageElement) {
-                                            seenMessage = messageElement.textContent; // Store the original message
-                                        }
-                                        
-                                        // Add click event listener
-                                        eyeButton.addEventListener('click', () => {
-                                            if (eyeButton.dataset.state === 'closed') {
-                                                seeOriginal(index);
-                                                eyeButton.src = loadImage('open_eye_white.png');
-                                                eyeButton.dataset.state = 'open';
-                                            } else {
-                                                unSeeOriginal(index);
-                                                eyeButton.src = loadImage('closed_eye_white.png');
-                                                eyeButton.dataset.state = 'closed';
-                                            }
-                                        });
-                                    }
-                                    
-                                    element.appendChild(eyeButton);
+                                // Create container for eye and background
+                                const container = document.createElement('div');
+                                container.style.position = 'relative';
+                                container.style.display = 'inline-block';
+                                container.appendChild(backgroundCircle);
+                                
+                                // Load extension images
+                                const loadImage = (name) => {
+                                    return chrome.runtime.getURL(`images/${name}`);
+                                };
+
+                                // Set initial image and styles
+                                eyeButton.src = loadImage('closed_eye_white.png');
+                                
+                                // Debug image loading
+                                eyeButton.onerror = () => {
+                                    console.error('Failed to load eye image:', eyeButton.src);
+                                    eyeButton.style.backgroundColor = 'white';
+                                    eyeButton.style.padding = '2px';
+                                    eyeButton.style.borderRadius = '50%';
+                                };
+                                eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
+
+                                const messageElement = chats[index].querySelector('._ao3e');
+                                if (messageElement) {
+                                    seenMessage = messageElement.textContent; // Store the original message
                                 }
+                                
+                                // Add click event listener
+                                eyeButton.addEventListener('click', () => {
+                                    if (eyeButton.dataset.state === 'closed') {
+                                        seeOriginal(index);
+                                        eyeButton.src = loadImage('open_eye_white.png');
+                                        eyeButton.dataset.state = 'open';
+                                    } else {
+                                        unSeeOriginal(index);
+                                        eyeButton.src = loadImage('closed_eye_white.png');
+                                        eyeButton.dataset.state = 'closed';
+                                    }
+                                });
+                                
+                                container.appendChild(eyeButton);
+                                element.appendChild(container);
                             } 
-                            // Handle eye removal when x17t9dm2 is gone or isEnabled becomes false
                             else if ((!hasX17 || !status) && existingEye) {
                                 const index = getMessageIndex(element);
                                 if (index !== -1) {
@@ -161,7 +200,11 @@ if (!apiKey) {
                                         messageElement.textContent = seenMessage;
                                     }
                                 }
-                                existingEye.remove();
+                                // Remove the entire container
+                                const container = existingEye.parentElement;
+                                if (container && container.parentElement) {
+                                    container.parentElement.removeChild(container);
+                                }
                             }
                         }
                     });
@@ -169,7 +212,8 @@ if (!apiKey) {
                 
                 observer.observe(element, {
                     childList: true,
-                    subtree: true
+                    subtree: true,
+                    characterData: true
                 });
             }
         });
@@ -339,7 +383,7 @@ if (!apiKey) {
         } 
         catch (error) {
             status = false;
-            setTimeout(translate(), 1000);
+            setTimeout(translate(), 10000);
             return;
         }
         let resultChats = result.response.text();
@@ -349,6 +393,7 @@ if (!apiKey) {
                 chats[last].querySelector('._ao3e').textContent = resultChats[i];
             
         status = true;
+        initializeMessageObservers();
         console.log("Translated successfully");
     }
 
