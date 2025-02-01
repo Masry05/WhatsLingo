@@ -9,7 +9,6 @@ if (!apiKey) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-        console.log("AI initialized successfully");
     } catch (error) {
         console.error("Error initializing AI:", error);
     }
@@ -34,6 +33,7 @@ if (!apiKey) {
     let classObserver = null;  // New observer for class changes
     let originalChats = [];
     let seenMessage = '';
+    let translatedChats = [];
 
     
 
@@ -258,15 +258,31 @@ if (!apiKey) {
         try {
             // Update all variables from the message
             isEnabled = message.isEnabled ?? isEnabled;
-            isFormal = message.isFormal ?? isFormal;
-            isFranco = message.isFranco ?? isFranco;
             senderLanguage = message.senderLanguage ?? senderLanguage;
             senderDialect = message.senderDialect ?? senderDialect;
             senderGender = message.senderGender ?? senderGender;
             receiverLanguage = message.receiverLanguage ?? receiverLanguage;
             receiverDialect = message.receiverDialect ?? receiverDialect;
             receiverGender = message.receiverGender ?? receiverGender;
-            
+            isFormal = message.isFormal ?? isFormal;
+            isFranco = message.isFranco ?? isFranco;
+
+            // Show tutorial toast when enabled
+            if (message.isEnabled !== undefined && !status) {
+                if (message.isEnabled) {
+                    showTutorialToast();
+                } else {
+                    // Remove toast if it exists
+                    const existingToast = document.querySelector('.tutorial-toast');
+                    if (existingToast) {
+                        existingToast.remove();
+                    }
+                }
+            }
+
+            // Initialize or reinitialize the observer
+            setTimeout(initializeChatObserver, 1000); // Give WhatsApp a moment to load the chats
+
             // Call appropriate function based on isEnabled
             if(status || isEnabled){
                 if (isEnabled) {
@@ -362,7 +378,6 @@ if (!apiKey) {
     async function translate() {
         if(senderLanguage == '')
             return;
-        console.log('Translating messages...', chats.length);
         let toBeTranslated = [];
         let last = originalChats.length
         for(let i=last; i<chats.length; i++){
@@ -370,29 +385,28 @@ if (!apiKey) {
             originalChats.push(messageContent);
             toBeTranslated.push(messageContent);
         }
-       
         if(currentLanguage != senderLanguage || currentDialect != senderDialect || !status){
             toBeTranslated = originalChats;
             currentLanguage = senderLanguage;
             currentDialect = senderDialect;
             last = 0;
         }
-        console.log(originalChats);
-        console.log(toBeTranslated);
         if(toBeTranslated.length == 0){
             console.log('No new messages to translate');
             return;
         }
+
+        console.log('Translating messages...', toBeTranslated.length);
+
         const prompt = `Translate the following list of chats (given in the form ["chat1","chat2","chat3"] and output them in the same form exactly and NO EXTRA SPACES) from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation): [${toBeTranslated.map(chat=> `" ${chat} "`).join(',')}]`;
-        console.log(prompt);
+        console.log('Prompt:', prompt);
         let result;
         try {
             result = await model.generateContent(prompt);
-            console.log(result.response.text());
         } 
         catch (error) {
-            status = false;
-            setTimeout(translate(), 10000);
+            //status = false;
+            //setTimeout(translate(), 20000);
             return;
         }
         let resultChats = result.response.text();
@@ -430,7 +444,6 @@ if (!apiKey) {
     async function translateSender(element){
         const text = getMessageContent(element.parentElement);
         const prompt = `Translate the following text from person S to person R , to ${receiverLanguage == 'Arabic' ? receiverDialect : ''} ${isFranco && receiverLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${receiverLanguage} ${isFormal?'and make the translation formal':''} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (ONLY output the translation and if the text is already in the target language then leave it as it is AND DONT ADD ANY ADDITIONAL SPACE): ${text}`;
-        console.log(prompt);
         let result;
         try {
             result = await model.generateContent(prompt);
@@ -485,5 +498,89 @@ if (!apiKey) {
     function unSeeOriginal(index) {
         if(!chats[index].classList.contains('_akbw'))
             chats[index].querySelector('._ao3e').textContent = seenMessage;
+    }
+
+    // Function to show tutorial toast
+    function showTutorialToast() {
+        // Remove existing toast if any
+        const existingToast = document.querySelector('.tutorial-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast container
+        const toast = document.createElement('div');
+        toast.className = 'tutorial-toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '24px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        toast.style.color = 'white';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '8px';
+        toast.style.zIndex = '999999';
+        toast.style.fontFamily = 'Segoe UI, system-ui, sans-serif';
+        toast.style.fontSize = '14px';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.gap = '12px';
+        toast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        toast.style.animation = 'toastFadeIn 0.3s ease-out';
+
+        // Create info icon
+        const infoIcon = document.createElement('div');
+        infoIcon.innerHTML = '💡';
+        infoIcon.style.fontSize = '20px';
+
+        // Create message
+        const message = document.createElement('div');
+        message.textContent = 'Before sending your message, press F2 then Ctrl + V';
+        message.style.lineHeight = '1.4';
+
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '×';
+        closeButton.style.background = 'none';
+        closeButton.style.border = 'none';
+        closeButton.style.color = 'white';
+        closeButton.style.fontSize = '20px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.padding = '0 0 0 12px';
+        closeButton.style.opacity = '0.7';
+        closeButton.style.transition = 'opacity 0.2s';
+        closeButton.onmouseover = () => closeButton.style.opacity = '1';
+        closeButton.onmouseout = () => closeButton.style.opacity = '0.7';
+        closeButton.onclick = () => toast.remove();
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, 20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Assemble toast
+        toast.appendChild(infoIcon);
+        toast.appendChild(message);
+        toast.appendChild(closeButton);
+        document.body.appendChild(toast);
+
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.style.animation = 'toastFadeIn 0.3s ease-in reverse';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 8000);
     }
 })();

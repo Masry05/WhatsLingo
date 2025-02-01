@@ -11,13 +11,13 @@
         <div id="sender-section" class="user-section">
             <h2 class="section-title">User</h2>
             <div class="gender-selection">
-                <label class="gender-label">
+                <label class="gender-label gender-male">
                     <img src="images/male.png" alt="Male" class="gender-icon-male">
-                    <input type="radio" name="sender-gender" id="sender-male" value="male">
+                    <input type="radio" name="sender-gender" id="sender-male" value="male" class="transition">
                 </label>
                 <label class="gender-label">
                     <img src="images/female.png" alt="Female" class="gender-icon-female">
-                    <input type="radio" name="sender-gender" id="sender-female" value="female">
+                    <input type="radio" name="sender-gender" id="sender-female" value="female" class="transition">
                 </label>
             </div>
             <label for="sender-language">Language:</label>
@@ -68,13 +68,13 @@
         <div id="receiver-section" class="user-section">
             <h2 class="section-title">Peer</h2>
             <div class="gender-selection receiver-gender-selection">
-                <label class="gender-label">
+                <label class="gender-label gender-male">
                     <img src="images/male.png" alt="Male" class="gender-icon-male">
-                    <input type="radio" name="receiver-gender" id="receiver-male" value="male">
+                    <input type="radio" name="receiver-gender" id="receiver-male" value="male" class="transition">
                 </label>
                 <label class="gender-label">
                     <img src="images/female.png" alt="Female" class="gender-icon-female">
-                    <input type="radio" name="receiver-gender" id="receiver-female" value="female">
+                    <input type="radio" name="receiver-gender" id="receiver-female" value="female" class="transition">
                 </label>
             </div>
             <label for="receiver-language">Language:</label>
@@ -123,27 +123,23 @@
         </div>
 
         <div class="mode-switch-container">
-            <label class="switch">
-                <input type="checkbox" id="modeToggle">
-                <span class="slider round"></span>
-            </label>
+            <input type="checkbox" id="modeToggle" class="transition">
             <span id="modeLabel">Dark Mode</span>
         </div>
     </div>
 
     <div id="common-section">
-        <label>
-            <input type="checkbox" id="formal-checkbox" > Formal
+        <label class="checkbox-label">
+            <input type="checkbox" id="formal-checkbox">
+            <span>Formal</span>
         </label>
-        <label id="franco-label" style="display: none;">
-            <input type="checkbox" id="franco-checkbox"> Franco
+        <label id="franco-label" class="checkbox-label" style="display: none;">
+            <input type="checkbox" id="franco-checkbox">
+            <span>Franco</span>
         </label>
         <div class="switch-container" style="display: none;">
-            <label class="switch">
-                <input type="checkbox" id="enableToggle">
-                <span class="slider round"></span>
-            </label>
-            <span id="toggleLabel">Disabled</span>
+            <input type="checkbox" id="enableToggle" class="transition">
+            <span id="toggleLabel">Enabled</span>
         </div>
     </div>
     <script src="popup.js"></script>

@@ -88,8 +88,9 @@ button:hover {
 .switch-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+    justify-content: center;  
+    gap: 5px;  
+    margin: 4px 0;
 }
 
 .switch {
@@ -143,6 +144,8 @@ input:checked + .slider:before {
     right: 10px;
     display: flex;
     align-items: center;
+    gap: 5px;  
+    margin: 4px;
 }
 
 .mode-switch-container .switch {
@@ -226,33 +229,37 @@ body.dark-mode #instructions {
 
 .gender-selection {
     display: flex;
-    width: 150px;
-    justify-content: space-around;
-    margin-bottom: 20px;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 10px;
 }
 
 .gender-icon-male {
     width: 30px;
     height: 30px;
     cursor: pointer;
-    margin-bottom: 3px;
-    margin-left : 10px;
 }
 
 .gender-icon-female {
     width: 27px;
     height: 35px;
     cursor: pointer;
-    margin-top  : -3px;
-    margin-bottom: 3px;
-    margin-left : 2px;
 }
 
 .gender-label {
     display: flex;
-    align-items: center;
     flex-direction: column;
-    margin-left: -40px;
+    align-items: center;
+    gap: 5px;  
+}
+
+.gender-male input[type="radio"] {
+    margin-top: 5px;  /* Move the male radio button down */
+}
+
+.gender-male {
+    margin-left: -10px;
+    margin-bottom: -5px;
 }
 
 .language-dropdown, .dialect-container select {
@@ -316,10 +323,10 @@ body.dark-mode #instructions {
 }
 
 #common-section {
-    margin-top: 5px;
-    text-align: center;
-    width: 100%;
-    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
 }
 
 #common-section label {
@@ -330,4 +337,227 @@ body.dark-mode #instructions {
     width: 150px;
     margin-left: -2px;
     margin-right: 5px;
+}
+
+/* Variables */
+:root {
+  --on: rgba(133, 255, 122, 1); /* Green */
+  --off: rgba(44, 63, 82, 1);   /* Grey */
+  --selected: rgba(21, 32, 42, 1); /* Dark Grey */
+  --primary-green: #1daa61;
+}
+
+/* Transition classes */
+.transition {
+  transition: all 0.25s cubic-bezier(0.75, 0.01, 0.48, 2);
+}
+
+.bgTransition {
+  transition: all 0.25s ease-in-out;
+}
+
+/* Radio and Checkbox styling */
+input[type="radio"] {
+  position: relative;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+input[type="radio"]:before,
+input[type="radio"]:after,
+input[type="checkbox"]:before,
+input[type="checkbox"]:after {
+  content: "";
+  position: absolute;
+}
+
+input[type="radio"]:before,
+input[type="checkbox"]:before {
+  height: 100%;
+}
+
+input[type="radio"] {
+  border-radius: 30px;
+}
+
+input[type="radio"]:before {
+  width: 100%;
+  border-radius: 30px;
+  background-color: var(--off);
+  box-shadow: 0 0 0 1px var(--off);
+  transition: all 0.25s ease-in-out;
+}
+
+input[type="radio"]:after {
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
+  background-color: var(--selected);
+  transform: scale(0, 0);
+  transition: all 0.25s cubic-bezier(0.75, 0.01, 0.48, 2);
+}
+
+input[type="radio"]:checked:after {
+  transform: scale(0.75, 0.75);
+}
+
+input[type="radio"]:checked:before {
+  background-color: var(--primary-green);
+  box-shadow: 0 0 0 1px var(--primary-green);
+}
+
+/* Checkbox styling for both Formal and Franco */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#formal-checkbox,
+#franco-checkbox {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 1px solid var(--off);
+    border-radius: 3px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+#formal-checkbox:checked,
+#franco-checkbox:checked {
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+#formal-checkbox:checked:after,
+#franco-checkbox:checked:after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Switch container styles */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 4px 0;
+}
+
+.mode-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 4px;
+}
+
+/* Update switch container styles */
+.switch-container label,
+#formal-checkbox + span,
+#franco-checkbox + span {
+    margin-left: 4px;
+}
+
+#toggleLabel,
+#modeLabel,
+#franco-label span {
+    margin-left: 5px;  
+    white-space: nowrap;
+}
+
+/* Remove default browser highlighting */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Switch styling for enable/disable and dark mode */
+#enableToggle,
+#modeToggle {
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    cursor: pointer;
+    width: 36px;
+    height: 20px;
+}
+
+#enableToggle:before,
+#modeToggle:before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--off);
+    box-shadow: 0 0 0 1px var(--off);
+    transform: translate(0, 0);
+    border-radius: 30px;
+    transition: all 0.25s ease-in-out;
+}
+
+#enableToggle:after,
+#modeToggle:after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    margin-left: 2px;
+    background-color: var(--selected);
+    border-radius: 50%;
+    transform: translate(0, 0);
+    transition: all 0.25s cubic-bezier(0.75, 0.01, 0.48, 2);
+}
+
+#enableToggle:checked:after,
+#modeToggle:checked:after {
+    transform: translate(16px, 0);
+}
+
+#enableToggle:checked:before,
+#modeToggle:checked:before {
+    background-color: var(--primary-green);
+    box-shadow: 0 0 0 1px var(--primary-green);
+}
+
+/* Keep existing spacing */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 4px 0;
+}
+
+.mode-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 4px;
 }

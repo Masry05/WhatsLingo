@@ -1,4 +1,4 @@
-main/node_modules/
-main/.env
-main/.env old
-main/dist/
+node_modules/
+.env
+.env old
+dist/
