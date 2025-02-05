@@ -42,7 +42,7 @@ if (!apiKey) {
         // Get the chat container and observe for new messages
         const chatContainer = document.querySelector('div[role="application"]');
         if (!chatContainer) {
-            console.log('Chat container not found, will retry...');
+            //console.log('Chat container not found, will retry...');
             return;
         }
 
@@ -63,7 +63,7 @@ if (!apiKey) {
                             if (!chats.includes(msg)) {
                                 chats.push(msg);
                                 newMessagesInBatch = true;
-                                console.log('New message added to cache');      
+                                //console.log('New message added to cache');      
                             }
                         });
                     }
@@ -78,7 +78,7 @@ if (!apiKey) {
             // Set new timeout to handle the batch
             batchTimeout = setTimeout(() => {
                 if (newMessagesInBatch && isEnabled) {
-                    console.log('Processing batch of new messages');
+                    //console.log('Processing batch of new messages');
                     translate();
                     initializeMessageObservers();
                     newMessagesInBatch = false;
@@ -100,7 +100,7 @@ if (!apiKey) {
                 chats.push(msg);
             }
         });
-        console.log('Initial messages cached:', chats.length);
+        //console.log('Initial messages cached:', chats.length);
 
         if(isEnabled) {
             translate();
@@ -109,7 +109,7 @@ if (!apiKey) {
 
     // Function to initialize observers for messages
     function initializeMessageObservers() {
-        console.log('Initializing message observers');
+        //console.log('Initializing message observers');
         // Find all elements with _amj_ class and observe for x17t9dm2
         const amjElements = document.querySelectorAll('._amj_');
         
@@ -176,7 +176,7 @@ if (!apiKey) {
                                     eyeButton.style.padding = '2px';
                                     eyeButton.style.borderRadius = '50%';
                                 };
-                                eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
+                                //eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
 
                                 const messageElement = chats[index].querySelector('._ao3e');
                                 if (messageElement) {
@@ -230,27 +230,27 @@ if (!apiKey) {
     function getMessageIndex(x17Element) {
         // Return -1 if element is null or undefined
         if (!x17Element) {
-            console.log('Invalid element passed to getMessageIndex');
+            //console.log('Invalid element passed to getMessageIndex');
             return -1;
         }
         
         // Find the parent _amk4 element
         const parentAmk4 = x17Element.closest('._amk4');
         if (!parentAmk4) {
-            console.log('No _amk4 parent found');
+            //console.log('No _amk4 parent found');
             return -1;
         }
 
         // Get the target akbu element
         const akbuElement = parentAmk4.querySelector('._akbu');
         if (!akbuElement) {
-            console.log('No _akbu element found');
+            //console.log('No _akbu element found');
             return -1;
         }
 
         // Find its index in the chats array
         const index = chats.indexOf(akbuElement);
-        console.log('Found _akbu element at index:', index);
+        //console.log('Found _akbu element at index:', index);
         return index;
     }
 
@@ -357,10 +357,10 @@ if (!apiKey) {
     async function initializeContactListener() {
         try {
             const contactElement = await waitForElement(".x1y332i5");
-            console.log('Contact element found');
+            //console.log('Contact element found');
             
             contactElement.addEventListener("click", () => {
-                console.log('Contact clicked');
+                //console.log('Contact clicked');
                 revert();
                 chats = [];
                 originalChats = [];
@@ -392,14 +392,13 @@ if (!apiKey) {
             last = 0;
         }
         if(toBeTranslated.length == 0){
-            console.log('No new messages to translate');
+            //console.log('No new messages to translate');
             return;
         }
 
-        console.log('Translating messages...', toBeTranslated.length);
+        //console.log('Translating messages...', toBeTranslated.length);
 
         const prompt = `Translate the following list of chats (given in the form ["chat1","chat2","chat3"] and output them in the same form exactly and NO EXTRA SPACES) from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation): [${toBeTranslated.map(chat=> `" ${chat} "`).join(',')}]`;
-        console.log('Prompt:', prompt);
         let result;
         try {
             result = await model.generateContent(prompt);
@@ -417,28 +416,28 @@ if (!apiKey) {
             
         status = true;
         initializeMessageObservers();
-        console.log("Translated successfully");
+        //console.log("Translated successfully");
     }
 
     function revert() {
-        console.log('Reverting messages...', chats.length);
+        //console.log('Reverting messages...', chats.length);
         if(originalChats.length != chats.length)
             return;
         for(let i = 0; i<chats.length; i++)
             if(!chats[i].classList.contains('_akbw'))
                 chats[i].querySelector('._ao3e').textContent = originalChats[i];
         status = false;
-        console.log('Reverted messages');
+        //console.log('Reverted messages');
     }
     document.addEventListener("keydown", (event) => {
         try {
             let element = document.querySelector("._ak1r").querySelector(".x15bjb6t").querySelector(".selectable-text")
             if(event.key === 'F2' && element !== null && isEnabled) {
-                console.log('F2 pressed');
+                //console.log('F2 pressed');
                 translateSender(element);    
             }
         } catch (Exception) {
-            console.log(Exception);
+            //console.log(Exception);
         }
     });
     async function translateSender(element){

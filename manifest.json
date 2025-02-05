@@ -2,12 +2,12 @@
   "manifest_version": 3,
   "name": "WhatsLingo",
   "description": "Beta 1.1: Under active development and testing.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "version_name": "1.1 beta",
   "action": {
       "default_popup": "popup.html",
       "default_icon": {
-        "16" : "images/logo16.png",
+        "16" : "images/logo16-1.png",
         "48" : "images/logo48.png",
         "128": "images/logo128.png"
        }
@@ -44,7 +44,7 @@
         "matches": ["https://web.whatsapp.com/*"]
     }],
   "icons": {
-    "16" : "images/logo16.png",
+    "16" : "images/logo16-1.png",
     "48" : "images/logo48.png",
     "128": "images/logo128.png"
   }
