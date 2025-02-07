@@ -11,8 +11,8 @@ body {
     border-radius: 10px;
     color: #000000;
     background-image: url('../images/wallpaper_white.png');
-    border: solid 5px #404643;
-    
+    border: solid 5px #a9a9a9;
+    transition: border-color 0.3s ease;
 }
 
 #container {
@@ -44,9 +44,9 @@ input[type="password"], input[type="text"] {
     width: 100%;
     box-sizing: border-box;
     border-radius: 5px;
-    border: 1px solid #4A4A4A; /* Border color in dark mode */
-    background-color: #2A2A2A; /* Input background in dark mode */
-    color: #EDEDED; /* Light text color */
+    border: 1px solid #d3d3d3; /* Border color in light mode */
+    background-color: #FFFFFF;
+    color: #000000;
 }
 
 button {
@@ -155,7 +155,7 @@ input:checked + .slider:before {
 
 input[type="password"], input[type="text"] {
     background-color: #FFFFFF;
-    border: 1px solid #CCCCCC;
+    border: 1px solid #d3d3d3;
     color: #000000;
 }
 
@@ -164,6 +164,7 @@ body.dark-mode {
     color: #EDEDED;
     background-image: url('../images/wallpaper_dark.png');
     background-size: cover;
+    border-color: #404643;
 }
 
 body.dark-mode input[type="password"], body.dark-mode input[type="text"] {
@@ -187,7 +188,7 @@ button:hover {
     width: 250px;
     box-sizing: border-box;
     border-radius: 5px;
-    border: 1px solid #CCCCCC;
+    border: 1px solid #d3d3d3;
     background-color: #FFFFFF;
     color: #000000;
     resize: none;
@@ -341,10 +342,13 @@ body.dark-mode #instructions {
 
 /* Variables */
 :root {
-  --on: rgba(133, 255, 122, 1); /* Green */
-  --off: rgba(44, 63, 82, 1);   /* Grey */
+  --on: #2d9c5c; /* Darker Green */
+  --off: #a9a9a9;   /* Darker Grey for light mode */
+  --off-dark: rgba(44, 63, 82, 1);   /* Original Grey for dark mode */
   --selected: rgba(21, 32, 42, 1); /* Dark Grey */
   --primary-green: #1daa61;
+  --switch-circle-light: #808080; /* Grey for switch circle in light mode */
+  --switch-circle-dark: rgba(21, 32, 42, 1); /* Original dark color for switch circle in dark mode */
 }
 
 /* Transition classes */
@@ -529,7 +533,7 @@ input[type="radio"]:checked:before {
     height: 16px;
     margin-top: 2px;
     margin-left: 2px;
-    background-color: var(--selected);
+    background-color: var(--switch-circle-light);
     border-radius: 50%;
     transform: translate(0, 0);
     transition: all 0.25s cubic-bezier(0.75, 0.01, 0.48, 2);
@@ -560,4 +564,90 @@ input[type="radio"]:checked:before {
     align-items: center;
     gap: 5px;
     margin: 4px;
+}
+
+/* Dark mode styles */
+.dark-mode {
+    border-color: #404643;
+}
+
+.dark-mode .language-dropdown,
+.dark-mode .dialect-container select {
+    background-color: #2A2A2A;
+    color: #EDEDED;
+    border-color: #1daa61;
+}
+
+.dark-mode input[type="radio"]:before {
+    background-color: var(--off-dark);
+    box-shadow: 0 0 0 1px var(--off-dark);
+}
+
+.dark-mode #enableToggle:before,
+.dark-mode #modeToggle:before {
+    background-color: var(--off-dark);
+    box-shadow: 0 0 0 1px var(--off-dark);
+}
+
+.dark-mode input[type="radio"]:after,
+.dark-mode #enableToggle:after,
+.dark-mode #modeToggle:after {
+    background-color: var(--switch-circle-dark);
+}
+
+/* Switch and radio button active states */
+input[type="radio"]:checked:before,
+#enableToggle:checked:before,
+#modeToggle:checked:before {
+    background-color: var(--on);
+    box-shadow: 0 0 0 1px var(--on);
+}
+
+input[type="radio"]:checked:after,
+#enableToggle:checked:after,
+#modeToggle:checked:after {
+    background-color: var(--switch-circle-light); /* Keep light mode circle color */
+}
+
+/* Dark mode styles */
+.dark-mode {
+    border-color: #404643;
+}
+
+.dark-mode .language-dropdown,
+.dark-mode .dialect-container select {
+    background-color: #2A2A2A;
+    color: #EDEDED;
+    border-color: #1daa61;
+}
+
+.dark-mode input[type="radio"]:before {
+    background-color: var(--off-dark);
+    box-shadow: 0 0 0 1px var(--off-dark);
+}
+
+.dark-mode #enableToggle:before,
+.dark-mode #modeToggle:before {
+    background-color: var(--off-dark);
+    box-shadow: 0 0 0 1px var(--off-dark);
+}
+
+.dark-mode input[type="radio"]:after,
+.dark-mode #enableToggle:after,
+.dark-mode #modeToggle:after {
+    background-color: var(--switch-circle-dark);
+}
+
+/* Keep circle/head color unchanged in dark mode when active */
+.dark-mode input[type="radio"]:checked:after,
+.dark-mode #enableToggle:checked:after,
+.dark-mode #modeToggle:checked:after {
+    background-color: var(--switch-circle-dark); /* Keep dark mode circle color */
+}
+
+.dark-mode input[type="radio"]:checked:before,
+.dark-mode #enableToggle:checked:before,
+.dark-mode #modeToggle:checked:before {
+    background-color: var(--on);
+    box-shadow: 0 0 0 1px var(--on);
 }

@@ -42,69 +42,62 @@ if (!apiKey) {
         // Get the chat container and observe for new messages
         const chatContainer = document.querySelector('div[role="application"]');
         if (!chatContainer) {
-            //console.log('Chat container not found, will retry...');
+            //console.log('Chat container not found');
             return;
         }
 
-        let batchTimeout = null;
-        let newMessagesInBatch = false;
+        // Disconnect existing observer if any
+        if (chatObserver) {
+            chatObserver.disconnect();
+        }
+
+        // Cache initial messages
+        const initialMessages = document.getElementsByClassName('_akbu');
+        chats = Array.from(initialMessages);
+        //console.log('Initial messages cached:', chats.length);
+
+        // If enabled, translate initial messages
+        if (isEnabled && chats.length > 0) {
+            translate();
+        }
 
         // Create observer for new messages
         chatObserver = new MutationObserver((mutations) => {
+            let newMessagesFound = false;
+            
             mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Check if it's an element node
-                        const messages = node.classList?.contains('_akbu') ? 
-                            [node] : 
-                            Array.from(node.getElementsByClassName('_akbu'));
-                        
-                        messages.forEach(msg => {
-                            // Only add if not already in the array
-                            if (!chats.includes(msg)) {
-                                chats.push(msg);
-                                newMessagesInBatch = true;
-                                //console.log('New message added to cache');      
-                            }
-                        });
-                    }
-                });
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) { // Check if it's an element node
+                            const messages = node.classList?.contains('_akbu') ? 
+                                [node] : 
+                                Array.from(node.getElementsByClassName('_akbu'));
+                            
+                            messages.forEach(msg => {
+                                if (!chats.includes(msg)) {
+                                    chats.push(msg);
+                                    newMessagesFound = true;
+                                }
+                            });
+                        }
+                    });
+                }
             });
 
-            // Clear existing timeout if any
-            if (batchTimeout) {
-                clearTimeout(batchTimeout);
-            }
-
-            // Set new timeout to handle the batch
-            batchTimeout = setTimeout(() => {
-                if (newMessagesInBatch && isEnabled) {
-                    //console.log('Processing batch of new messages');
+            if (newMessagesFound) {
+                //console.log('New messages detected, total messages:', chats.length);
+                if (isEnabled) {
                     translate();
-                    initializeMessageObservers();
-                    newMessagesInBatch = false;
                 }
-            }, 500); // Wait for 500ms after last mutation before processing batch
+            }
         });
 
         // Start observing for new messages
         chatObserver.observe(chatContainer, { 
             childList: true, 
             subtree: true,
-            characterData: true
+            characterData: false // Don't observe text changes
         });
-
-        // Cache existing messages
-        const initialMessages = document.getElementsByClassName('_akbu');
-        Array.from(initialMessages).forEach(msg => {
-            if (!chats.includes(msg)) {
-                chats.push(msg);
-            }
-        });
-        //console.log('Initial messages cached:', chats.length);
-
-        if(isEnabled) {
-            translate();
-        }
     }
 
     // Function to initialize observers for messages
@@ -122,6 +115,7 @@ if (!apiKey) {
                         if (mutation.type === 'childList') {
                             const hasX17 = element.querySelector('.x17t9dm2');
                             const existingEye = element.querySelector('.eye-button');
+                            const existingRetranslate = element.querySelector('.retranslate-button');
                             
                             if (hasX17 && status && !existingEye) {
                                 const index = getMessageIndex(hasX17);
@@ -154,12 +148,67 @@ if (!apiKey) {
                                 container.style.display = 'inline-flex';
                                 container.style.alignItems = 'center';
                                 container.style.justifyContent = 'center';
+                                container.style.gap = '5px'; // Add gap between icons
                                 container.appendChild(backgroundCircle);
 
                                 // Update eye button styles for better centering
                                 eyeButton.style.position = 'relative';
                                 eyeButton.style.margin = '0';
                                 eyeButton.style.padding = '4px';
+
+                                // Create retranslate button
+                                const retranslateButton = document.createElement('div');
+                                retranslateButton.className = 'retranslate-button';
+                                retranslateButton.innerHTML = '↻';
+                                retranslateButton.style.cursor = 'pointer';
+                                retranslateButton.style.width = '15px';
+                                retranslateButton.style.height = '15px';
+                                retranslateButton.style.display = 'inline-flex';
+                                retranslateButton.style.alignItems = 'center';
+                                retranslateButton.style.justifyContent = 'center';
+                                retranslateButton.style.verticalAlign = 'middle';
+                                retranslateButton.style.color = 'white';
+                                retranslateButton.style.fontSize = '16px';
+                                retranslateButton.style.position = 'relative';
+                                retranslateButton.style.margin = '0';
+                                retranslateButton.style.padding = '4px';
+                                retranslateButton.style.transition = 'transform 0.3s ease';
+                                retranslateButton.title = 'Retranslate';
+
+                                // Create background circle for retranslate button
+                                const retranslateBackground = backgroundCircle.cloneNode();
+                                
+                                // Create container for retranslate button
+                                const retranslateContainer = document.createElement('div');
+                                retranslateContainer.style.position = 'relative';
+                                retranslateContainer.style.display = 'inline-flex';
+                                retranslateContainer.style.alignItems = 'center';
+                                retranslateContainer.style.justifyContent = 'center';
+                                retranslateContainer.appendChild(retranslateBackground);
+                                retranslateContainer.appendChild(retranslateButton);
+
+                                // Add click event listener for retranslate
+                                retranslateButton.addEventListener('click', async () => {
+                                    // Start rotation animation
+                                    retranslateButton.style.animation = 'spin 1s linear infinite';
+                                    
+                                    try {
+                                        await reTranslate(index);
+                                    } finally {
+                                        // Stop rotation animation
+                                        retranslateButton.style.animation = 'none';
+                                    }
+                                });
+
+                                // Add animation styles for retranslate button
+                                const retranslateStyle = document.createElement('style');
+                                retranslateStyle.textContent = `
+                                    @keyframes spin {
+                                        0% { transform: rotate(0deg); }
+                                        100% { transform: rotate(360deg); }
+                                    }
+                                `;
+                                document.head.appendChild(retranslateStyle);
 
                                 // Load extension images
                                 const loadImage = (name) => {
@@ -168,6 +217,7 @@ if (!apiKey) {
 
                                 // Set initial image and styles
                                 eyeButton.src = loadImage('globe_white_crossed.png');
+                                eyeButton.title = 'See original message';
                                 
                                 // Debug image loading
                                 eyeButton.onerror = () => {
@@ -188,15 +238,18 @@ if (!apiKey) {
                                     if (eyeButton.dataset.state === 'closed') {
                                         seeOriginal(index);
                                         eyeButton.src = loadImage('globe_white.png');
+                                        eyeButton.title = 'See translated message';
                                         eyeButton.dataset.state = 'open';
                                     } else {
                                         unSeeOriginal(index);
                                         eyeButton.src = loadImage('globe_white_crossed.png');
+                                        eyeButton.title = 'See original message';
                                         eyeButton.dataset.state = 'closed';
                                     }
                                 });
                                 
                                 container.appendChild(eyeButton);
+                                container.appendChild(retranslateContainer);
                                 element.appendChild(container);
                             } 
                             else if ((!hasX17 || !status) && existingEye) {
@@ -209,6 +262,13 @@ if (!apiKey) {
                                 }
                                 // Remove the entire container
                                 const container = existingEye.parentElement;
+                                if (container && container.parentElement) {
+                                    container.parentElement.removeChild(container);
+                                }
+                            }
+                            else if ((!hasX17 || !status) && existingRetranslate) {
+                                // Remove the entire container
+                                const container = existingRetranslate.parentElement;
                                 if (container && container.parentElement) {
                                     container.parentElement.removeChild(container);
                                 }
@@ -254,8 +314,31 @@ if (!apiKey) {
         return index;
     }
 
+    // Initialize contact click listener
+    async function initializeContactListener() {
+        try {
+            const contactElement = await waitForElement(".x1y332i5");
+            //console.log('Contact element found');
+            
+            contactElement.addEventListener("click", () => {
+                //console.log('Contact clicked, reinitializing observer');
+                // Reset state
+                chats = [];
+                originalChats = [];
+                translatedChats = [];
+                status = false;
+                
+                // Initialize observer with new chat
+                setTimeout(initializeChatObserver, 1000);
+            });
+        } catch (error) {
+            console.error('Error setting up contact listener:', error);
+        }    
+    }
+
     chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         try {
+            const wasEnabled = isEnabled;
             // Update all variables from the message
             isEnabled = message.isEnabled ?? isEnabled;
             senderLanguage = message.senderLanguage ?? senderLanguage;
@@ -267,31 +350,19 @@ if (!apiKey) {
             isFormal = message.isFormal ?? isFormal;
             isFranco = message.isFranco ?? isFranco;
 
-            // Show tutorial toast when enabled
-            if (message.isEnabled !== undefined && !status) {
-                if (message.isEnabled) {
-                    showTutorialToast();
-                } else {
-                    // Remove toast if it exists
-                    const existingToast = document.querySelector('.tutorial-toast');
-                    if (existingToast) {
-                        existingToast.remove();
-                    }
-                }
+            if(!wasEnabled && isEnabled){
+                showTutorialToast();
+                translate();
+
+            }
+            // If translation was enabled and is now disabled, revert messages
+            if (wasEnabled && !isEnabled) {
+                revert();
             }
 
-            // Initialize or reinitialize the observer
-            setTimeout(initializeChatObserver, 1000); // Give WhatsApp a moment to load the chats
-
-            // Call appropriate function based on isEnabled
-            if(status || isEnabled){
-                if (isEnabled) {
-                    translate();
-                } else {
-                    revert();
-                }
-            }
-            if((currentLanguage != senderLanguage || currentDialect != senderDialect) && status && isEnabled){
+            // If settings changed while enabled, retranslate
+            if (isEnabled && (currentLanguage !== senderLanguage || currentDialect !== senderDialect)) {
+                translatedChats = [];
                 revert();
                 translate();
             }
@@ -353,31 +424,12 @@ if (!apiKey) {
         return fullText || messageSpan.innerText || '';
     }
 
-    // Initialize contact click listener
-    async function initializeContactListener() {
-        try {
-            const contactElement = await waitForElement(".x1y332i5");
-            //console.log('Contact element found');
-            
-            contactElement.addEventListener("click", () => {
-                //console.log('Contact clicked');
-                revert();
-                chats = [];
-                originalChats = [];
-                // Initialize or reinitialize the observer
-                setTimeout(initializeChatObserver, 1000); // Give WhatsApp a moment to load the chats
-            });
-        } catch (error) {
-            console.error('Error setting up contact listener:', error);
-        }    
-    }
-
-    // Start the initialization
-    initializeContactListener();
-
     async function translate() {
         if(senderLanguage == '')
             return;
+
+        showLoadingPopup('Translating your chats...'); // Show loading popup
+
         let toBeTranslated = [];
         let last = originalChats.length
         for(let i=last; i<chats.length; i++){
@@ -385,41 +437,195 @@ if (!apiKey) {
             originalChats.push(messageContent);
             toBeTranslated.push(messageContent);
         }
-        if(currentLanguage != senderLanguage || currentDialect != senderDialect || !status){
+
+        if(originalChats.length != 0 && originalChats.length == translatedChats.length && currentLanguage == senderLanguage && currentDialect == senderDialect){
+            removeLoadingPopup();
+            for(let i=0; i<chats.length; i++)
+                if(!chats[i].classList.contains('_akbw'))
+                    chats[i].querySelector('._ao3e').textContent = translatedChats[i];
+            //console.log('Already translated');
+            status = true; // Set status before initializing observers
+            initializeMessageObservers(); // Now observers will find status=true
+            return;
+        }
+        
+        if(currentLanguage != senderLanguage || currentDialect != senderDialect){
             toBeTranslated = originalChats;
             currentLanguage = senderLanguage;
             currentDialect = senderDialect;
             last = 0;
         }
-        if(toBeTranslated.length == 0){
-            //console.log('No new messages to translate');
-            return;
-        }
 
         //console.log('Translating messages...', toBeTranslated.length);
 
         const prompt = `Translate the following list of chats (given in the form ["chat1","chat2","chat3"] and output them in the same form exactly and NO EXTRA SPACES) from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation): [${toBeTranslated.map(chat=> `" ${chat} "`).join(',')}]`;
+        
         let result;
         try {
             result = await model.generateContent(prompt);
-        } 
-        catch (error) {
-            //status = false;
-            //setTimeout(translate(), 20000);
+        } catch (error) {
+            console.error('Translation error:', error);
+            removeLoadingPopup();
             return;
         }
+        
         let resultChats = result.response.text();
-        resultChats =fixOutputFormat(resultChats); 
+        resultChats = fixOutputFormat(resultChats); 
+
+        if(!status){
+            for(let i=0; i<translatedChats.length; i++)
+                if(!chats[i].classList.contains('_akbw'))
+                    chats[i].querySelector('._ao3e').textContent = translatedChats[i];
+        }
+
         for(let i=0; i<resultChats.length; i++,last++)
-            if(!chats[i].classList.contains('_akbw'))
+            if(!chats[i].classList.contains('_akbw')){
                 chats[last].querySelector('._ao3e').textContent = resultChats[i];
-            
+                translatedChats.push(resultChats[i]);
+            }
+        
         status = true;
         initializeMessageObservers();
         //console.log("Translated successfully");
+        if(!isEnabled){
+            revert();
+            return;
+        }
+            
+
+        showLoadingPopup('Translation completed!', true); // Show success popup
+    }
+
+    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+        try {
+            const wasEnabled = isEnabled;
+            // Update all variables from the message
+            isEnabled = message.isEnabled ?? isEnabled;
+            senderLanguage = message.senderLanguage ?? senderLanguage;
+            senderDialect = message.senderDialect ?? senderDialect;
+            senderGender = message.senderGender ?? senderGender;
+            receiverLanguage = message.receiverLanguage ?? receiverLanguage;
+            receiverDialect = message.receiverDialect ?? receiverDialect;
+            receiverGender = message.receiverGender ?? receiverGender;
+            isFormal = message.isFormal ?? isFormal;
+            isFranco = message.isFranco ?? isFranco;
+
+            if(!wasEnabled && isEnabled){
+                translate();
+            }
+            // If translation was enabled and is now disabled, revert messages and remove popup
+            if (wasEnabled && !isEnabled) {
+                removeLoadingPopup();
+                revert();
+            }
+
+            // If settings changed while enabled, retranslate
+            if (isEnabled && (currentLanguage !== senderLanguage || currentDialect !== senderDialect)) {
+                translatedChats = [];
+                revert();
+                translate();
+            }
+
+            // Send success response
+            sendResponse({ success: true });
+        } catch (error) {
+            console.error('Error processing message:', error);
+            sendResponse({ success: false, error: error.message });
+        }
+        return true; // Keep the message channel open for async response
+    });
+
+    // Function to create loading popup
+    function showLoadingPopup(message, isSuccess = false) {
+        // Remove existing popup if any
+        removeLoadingPopup();
+
+        const popup = document.createElement('div');
+        popup.className = 'translation-popup';
+        popup.style.position = 'fixed';
+        popup.style.top = '20%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popup.style.color = 'white';
+        popup.style.padding = '20px 40px';
+        popup.style.borderRadius = '12px';
+        popup.style.zIndex = '999999';
+        popup.style.display = 'flex';
+        popup.style.alignItems = 'center';
+        popup.style.gap = '15px';
+        popup.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        popup.style.transition = 'opacity 0.3s ease-in-out';
+
+        if (!isSuccess) {
+            // Create loading spinner
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+            spinner.style.width = '20px';
+            spinner.style.height = '20px';
+            spinner.style.border = '3px solid #ffffff';
+            spinner.style.borderTop = '3px solid transparent';
+            spinner.style.borderRadius = '50%';
+            spinner.style.animation = 'spin 1s linear infinite';
+            popup.appendChild(spinner);
+        } else {
+            // Create success checkmark
+            const checkmark = document.createElement('div');
+            checkmark.innerHTML = '&#10004;';
+            checkmark.style.color = '#4CAF50';
+            checkmark.style.fontSize = '24px';
+            popup.appendChild(checkmark);
+        }
+
+        const text = document.createElement('span');
+        text.textContent = message;
+        text.style.fontFamily = 'Segoe UI, system-ui, sans-serif';
+        text.style.fontSize = '16px';
+        popup.appendChild(text);
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .translation-popup {
+                animation: fadeIn 0.3s ease-out;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -60%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(popup);
+
+        // If success message, remove after delay
+        if (isSuccess) {
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                setTimeout(() => removeLoadingPopup(), 300);
+            }, 2000);
+        }
+    }
+
+    function removeLoadingPopup() {
+        const existingPopup = document.querySelector('.translation-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
     }
 
     function revert() {
+        removeLoadingPopup();
         //console.log('Reverting messages...', chats.length);
         if(originalChats.length != chats.length)
             return;
@@ -472,6 +678,26 @@ if (!apiKey) {
             return navigator.clipboard.writeText(text + ", Try again in a few seconds.");
         }
     }
+    async function reTranslate(index) {
+        const prompt = `Retranslate the following chat from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation , and dont write the input chat in the traslation output), your output should be different from (${translatedChats[index]}): ${originalChats[index]}`;
+        //console.log(prompt);
+        let result;
+        try {
+            result = await model.generateContent(prompt);
+            let translatedText = result.response.text();
+            if(translatedText.charAt(translatedText.length - 1) === '\n' || translatedText.charAt(translatedText.length - 1) === ' ')
+                translatedText = translatedText.slice(0, -1);
+
+            // Update the message and translated chats array
+            if (!chats[index].classList.contains('_akbw')) {
+                chats[index].querySelector('._ao3e').textContent = translatedText;
+                translatedChats[index] = translatedText;
+            }
+            //console.log(translatedText);
+        } catch (error) {
+            console.error('Translation error:', error);
+        }
+    }
     function fixOutputFormat(output) {
         let start = 0;
         let end = 0;
@@ -510,76 +736,90 @@ if (!apiKey) {
         // Create toast container
         const toast = document.createElement('div');
         toast.className = 'tutorial-toast';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '24px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        toast.style.color = 'white';
-        toast.style.padding = '12px 24px';
-        toast.style.borderRadius = '8px';
-        toast.style.zIndex = '999999';
-        toast.style.fontFamily = 'Segoe UI, system-ui, sans-serif';
-        toast.style.fontSize = '14px';
-        toast.style.display = 'flex';
-        toast.style.alignItems = 'center';
-        toast.style.gap = '12px';
-        toast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-        toast.style.animation = 'toastFadeIn 0.3s ease-out';
+        toast.style.cssText = `
+            position: fixed !important;
+            bottom: 24px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            background-color: rgba(0, 0, 0, 0.8) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            z-index: 2147483647 !important;
+            font-family: Segoe UI, system-ui, sans-serif !important;
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            opacity: 0;
+            transition: opacity 0.3s ease-out !important;
+            pointer-events: auto !important;
+        `;
 
         // Create info icon
         const infoIcon = document.createElement('div');
         infoIcon.innerHTML = '💡';
-        infoIcon.style.fontSize = '20px';
+        infoIcon.style.cssText = 'font-size: 20px !important;';
 
         // Create message
         const message = document.createElement('div');
         message.textContent = 'Before sending your message, press F2 then Ctrl + V';
-        message.style.lineHeight = '1.4';
+        message.style.cssText = 'line-height: 1.4 !important; color: white !important;';
 
         // Create close button
         const closeButton = document.createElement('button');
         closeButton.innerHTML = '×';
-        closeButton.style.background = 'none';
-        closeButton.style.border = 'none';
-        closeButton.style.color = 'white';
-        closeButton.style.fontSize = '20px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.style.padding = '0 0 0 12px';
-        closeButton.style.opacity = '0.7';
-        closeButton.style.transition = 'opacity 0.2s';
+        closeButton.style.cssText = `
+            background: none !important;
+            border: none !important;
+            color: white !important;
+            font-size: 20px !important;
+            cursor: pointer !important;
+            padding: 0 0 0 12px !important;
+            opacity: 0.7;
+            transition: opacity 0.2s !important;
+        `;
+        
         closeButton.onmouseover = () => closeButton.style.opacity = '1';
         closeButton.onmouseout = () => closeButton.style.opacity = '0.7';
-        closeButton.onclick = () => toast.remove();
+        closeButton.onclick = () => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        };
 
-        // Add animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes toastFadeIn {
-                from {
-                    opacity: 0;
-                    transform: translate(-50%, 20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translate(-50%, 0);
-                }
-            }
+        // Create a wrapper to ensure our toast stays on top
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 2147483647 !important;
+            pointer-events: none !important;
         `;
-        document.head.appendChild(style);
 
         // Assemble toast
         toast.appendChild(infoIcon);
         toast.appendChild(message);
         toast.appendChild(closeButton);
-        document.body.appendChild(toast);
+        wrapper.appendChild(toast);
+        document.body.appendChild(wrapper);
+
+        // Trigger fade in
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+        });
 
         // Auto-remove after 8 seconds
         setTimeout(() => {
-            if (toast.parentElement) {
-                toast.style.animation = 'toastFadeIn 0.3s ease-in reverse';
-                setTimeout(() => toast.remove(), 300);
+            if (wrapper.parentElement) {
+                toast.style.opacity = '0';
+                setTimeout(() => wrapper.remove(), 300);
             }
         }, 8000);
     }
+
+    // Start the initialization
+    initializeContactListener();
 })();
