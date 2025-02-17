@@ -8,7 +8,9 @@ if (!apiKey) {
 } else {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+        model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+          });
     } catch (error) {
         console.error("Error initializing AI:", error);
     }
@@ -30,9 +32,7 @@ if (!apiKey) {
     let currentDialect = '';
     let chats = []; // Changed from Set to Array
     let chatObserver = null;
-    let classObserver = null;  // New observer for class changes
     let originalChats = [];
-    let seenMessage = '';
     let translatedChats = [];
 
     
@@ -227,11 +227,6 @@ if (!apiKey) {
                                     eyeButton.style.borderRadius = '50%';
                                 };
                                 //eyeButton.onload = () => console.log('Successfully loaded eye image:', eyeButton.src);
-
-                                const messageElement = chats[index].querySelector('._ao3e');
-                                if (messageElement) {
-                                    seenMessage = messageElement.textContent; // Store the original message
-                                }
                                 
                                 // Add click event listener
                                 eyeButton.addEventListener('click', () => {
@@ -255,10 +250,7 @@ if (!apiKey) {
                             else if ((!hasX17 || !status) && existingEye) {
                                 const index = getMessageIndex(element);
                                 if (index !== -1) {
-                                    const messageElement = chats[index].querySelector('._ao3e');
-                                    if (messageElement && seenMessage && existingEye.dataset.state === 'open') {
-                                        messageElement.textContent = seenMessage;
-                                    }
+                                    unSeeOriginal(index);
                                 }
                                 // Remove the entire container
                                 const container = existingEye.parentElement;
@@ -425,7 +417,7 @@ if (!apiKey) {
     }
 
     async function translate() {
-        if(senderLanguage == '')
+        if(senderLanguage == '' || chats.length == 0)
             return;
 
         showLoadingPopup('Translating your chats...'); // Show loading popup
@@ -460,40 +452,47 @@ if (!apiKey) {
 
         const prompt = `Translate the following list of chats (given in the form ["chat1","chat2","chat3"] and output them in the same form exactly and NO EXTRA SPACES) from person R to person S , to ${senderLanguage == 'Arabic' ? senderDialect : ''} ${isFranco && senderLanguage == 'Arabic'?'Franco (like azik 3amel eih)':''} ${senderLanguage} ${senderGender != '' ? ', person S is a ' + senderGender: '' } ${receiverGender != '' ? ', person R is a ' + receiverGender: '' } (only output translation and if the text is already in the target language then leave it as it is, and dont write the gender after the translation): [${toBeTranslated.map(chat=> `" ${chat} "`).join(',')}]`;
         
-        let result;
         try {
-            result = await model.generateContent(prompt);
-        } catch (error) {
+            let result = await model.generateContent(prompt);
+            let resultChats = result.response.text();
+            if(resultChats.charAt(0) !== '[')
+                throw new Error("Invalid format");
+                resultChats = fixOutputFormat(resultChats); 
+
+                if(!status){
+                    for(let i=0; i<translatedChats.length; i++)
+                        if(!chats[i].classList.contains('_akbw'))
+                            chats[i].querySelector('._ao3e').textContent = translatedChats[i];
+                    last = translatedChats.length;
+                }
+                for(let i=0; i<resultChats.length; i++,last++)
+                    if(!chats[i].classList.contains('_akbw')){
+                        chats[last].querySelector('._ao3e').textContent = resultChats[i];
+                        translatedChats.push(resultChats[i]);
+                    }
+                
+                status = true;
+                initializeMessageObservers();
+                showLoadingPopup('Translation completed!', true); // Show success popup
+        } 
+        catch (error) {
+            console.log(translatedChats);
+            console.log(originalChats);
+            console.log(last);
             console.error('Translation error:', error);
-            removeLoadingPopup();
+            chrome.runtime.sendMessage({ isEnabled: false });
+            setTimeout(() => {
+                showLoadingPopup('Translation failed', false, true);
+            }, 100);
+
             return;
         }
         
-        let resultChats = result.response.text();
-        resultChats = fixOutputFormat(resultChats); 
-
-        if(!status){
-            for(let i=0; i<translatedChats.length; i++)
-                if(!chats[i].classList.contains('_akbw'))
-                    chats[i].querySelector('._ao3e').textContent = translatedChats[i];
-        }
-
-        for(let i=0; i<resultChats.length; i++,last++)
-            if(!chats[i].classList.contains('_akbw')){
-                chats[last].querySelector('._ao3e').textContent = resultChats[i];
-                translatedChats.push(resultChats[i]);
-            }
-        
-        status = true;
-        initializeMessageObservers();
         //console.log("Translated successfully");
         if(!isEnabled){
             revert();
             return;
         }
-            
-
-        showLoadingPopup('Translation completed!', true); // Show success popup
     }
 
     chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -536,10 +535,10 @@ if (!apiKey) {
     });
 
     // Function to create loading popup
-    function showLoadingPopup(message, isSuccess = false) {
+    function showLoadingPopup(message, isSuccess = false, isError = false) {
         // Remove existing popup if any
         removeLoadingPopup();
-
+    
         const popup = document.createElement('div');
         popup.className = 'translation-popup';
         popup.style.position = 'fixed';
@@ -556,8 +555,39 @@ if (!apiKey) {
         popup.style.gap = '15px';
         popup.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
         popup.style.transition = 'opacity 0.3s ease-in-out';
-
-        if (!isSuccess) {
+    
+        if (isError) {
+            // Create error X icon
+            const xIcon = document.createElement('div');
+            xIcon.innerHTML = '✖';
+            xIcon.style.color = '#ff4444';
+            xIcon.style.fontSize = '24px';
+            xIcon.style.cursor = 'pointer';
+            xIcon.addEventListener('click', () => {
+                popup.style.opacity = '0';
+                setTimeout(() => removeLoadingPopup(), 300);
+            });
+            popup.appendChild(xIcon);
+    
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                setTimeout(() => removeLoadingPopup(), 300);
+            }, 4000);
+        } else if (isSuccess) {
+            // Create success checkmark
+            const checkmark = document.createElement('div');
+            checkmark.innerHTML = '&#10004;';
+            checkmark.style.color = '#4CAF50';
+            checkmark.style.fontSize = '24px';
+            popup.appendChild(checkmark);
+    
+            // Auto-remove after 2 seconds
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                setTimeout(() => removeLoadingPopup(), 300);
+            }, 2000);
+        } else {
             // Create loading spinner
             const spinner = document.createElement('div');
             spinner.className = 'loading-spinner';
@@ -568,21 +598,14 @@ if (!apiKey) {
             spinner.style.borderRadius = '50%';
             spinner.style.animation = 'spin 1s linear infinite';
             popup.appendChild(spinner);
-        } else {
-            // Create success checkmark
-            const checkmark = document.createElement('div');
-            checkmark.innerHTML = '&#10004;';
-            checkmark.style.color = '#4CAF50';
-            checkmark.style.fontSize = '24px';
-            popup.appendChild(checkmark);
         }
-
+    
         const text = document.createElement('span');
         text.textContent = message;
         text.style.fontFamily = 'Segoe UI, system-ui, sans-serif';
         text.style.fontSize = '16px';
         popup.appendChild(text);
-
+    
         // Add animation styles
         const style = document.createElement('style');
         style.textContent = `
@@ -605,23 +628,15 @@ if (!apiKey) {
             }
         `;
         document.head.appendChild(style);
-
+    
         document.body.appendChild(popup);
-
-        // If success message, remove after delay
-        if (isSuccess) {
-            setTimeout(() => {
-                popup.style.opacity = '0';
-                setTimeout(() => removeLoadingPopup(), 300);
-            }, 2000);
-        }
     }
-
+    
     function removeLoadingPopup() {
         const existingPopup = document.querySelector('.translation-popup');
-        if (existingPopup) {
-            existingPopup.remove();
-        }
+        if (existingPopup) existingPopup.remove();
+        const existingStyle = document.querySelector('style');
+        if (existingStyle) existingStyle.remove();
     }
 
     function revert() {
@@ -696,6 +711,7 @@ if (!apiKey) {
             //console.log(translatedText);
         } catch (error) {
             console.error('Translation error:', error);
+            showLoadingPopup('Translation failed', false, true);
         }
     }
     function fixOutputFormat(output) {
@@ -715,14 +731,13 @@ if (!apiKey) {
     }
     function seeOriginal(index) {
         if(index >= 0 && index < chats.length){
-            seenMessage = chats[index].querySelector('._ao3e').textContent;
             chats[index].querySelector('._ao3e').textContent = originalChats[index];
         }
             
     }
     function unSeeOriginal(index) {
         if(!chats[index].classList.contains('_akbw'))
-            chats[index].querySelector('._ao3e').textContent = seenMessage;
+            chats[index].querySelector('._ao3e').textContent = translatedChats[index];
     }
 
     // Function to show tutorial toast

@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "WhatsLingo",
-  "description": "Beta 1.1: Under active development and testing.",
-  "version": "1.1.1",
-  "version_name": "1.1 beta",
+  "description": "Beta 1.2: Under active development and testing.",
+  "version": "1.2.1",
+  "version_name": "1.2 Beta",
   "action": {
       "default_popup": "popup.html",
       "default_icon": {

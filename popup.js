@@ -242,3 +242,9 @@ document.getElementById('enableToggle').addEventListener('change', function(even
     let text = isEnabled ? 'Enabled' : 'Disabled'
     document.getElementById('toggleLabel').textContent = text;
 });
+
+// Listen for messages from content.js
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.isEnabled !== undefined)
+        enableToggle.click();
+});
