@@ -11,6 +11,7 @@ let isFranco = false;
 
 // Load saved values from local storage
 function loadSavedValues() {
+    let theme = localStorage.getItem('theme');
     senderLanguage = localStorage.getItem('senderLanguage') || '';
     senderDialect = localStorage.getItem('senderDialect') || '';
     senderGender = localStorage.getItem('senderGender') || '';
@@ -44,12 +45,39 @@ function loadSavedValues() {
     }
     if (senderGender) {
         const radio = document.querySelector(`input[name="sender-gender"][value="${senderGender}"]`);
-        if (radio) radio.checked = true;
+        if (radio) {
+            radio.checked = true;
+            let image = radio.parentNode.children[0];
+            image.src = `images/${senderGender}.png`;
+        }
+    }
+    else {
+        const element = document.getElementById('sender-section');
+        const male = element.querySelector('.gender-male');
+        const maleImage = male.children[0];
+        maleImage.src = `images/male-${theme}.png`;
+        const female = element.querySelector('.gender-female');
+        const femaleImage = female.children[0];
+        femaleImage.src = `images/female-${theme}.png`;
     }
     if (receiverGender) {
         const radio = document.querySelector(`input[name="receiver-gender"][value="${receiverGender}"]`);
-        if (radio) radio.checked = true;
+        if (radio) {
+            radio.checked = true;
+            let image = radio.parentNode.children[0];
+            image.src = `images/${receiverGender}.png`;
+        }
     }
+    else {
+        const element = document.getElementById('receiver-section');
+        const male = element.querySelector('.gender-male');
+        const maleImage = male.children[0];
+        maleImage.src = `images/male-${theme}.png`;
+        const female = element.querySelector('.gender-female');
+        const femaleImage = female.children[0];
+        femaleImage.src = `images/female-${theme}.png`;
+    }
+
     document.getElementById('formal-checkbox').checked = isFormal;
     document.getElementById('franco-checkbox').checked = isFranco;
     document.getElementById('enableToggle').checked = isEnabled;
@@ -70,9 +98,67 @@ function loadSavedValues() {
     } else {
         document.querySelector('.switch-container').style = 'display: none;';
     }
-    if(isEnabled){
+    if (isEnabled) {
         saveAndNotify('isEnabled', isEnabled);
     }
+    loadTheme();
+}
+
+// Dark mode functionality
+function loadTheme() {
+    let theme = localStorage.getItem('theme');
+    let isDarkMode = theme === 'dark';
+
+    if (theme === null) {  // If no theme is set
+        isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light'); // Save the default theme
+    }
+
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    document.getElementById('modeToggle').checked = isDarkMode;
+    document.getElementById('modeLabel').textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+    document.querySelectorAll('.gender-male').forEach(element => {
+        const image = element.children[0];
+        const radio = element.children[1];
+        if (radio.checked) {
+            image.src = `images/male.png`;
+        }
+        else
+            image.src = `images/male-${theme}.png`;
+        element.addEventListener('mouseover', function (event) {
+            image.src = `images/male-${theme}.png`;
+        });
+        element.addEventListener('mouseout', function (event) {
+            if (radio.checked) {
+                image.src = `images/male.png`;
+                const femaleImage = element.parentNode.children[1].children[0];
+                femaleImage.src = `images/female-${theme}.png`;
+            }
+            else
+                image.src = `images/male-${theme}.png`;
+        });
+    });
+    document.querySelectorAll('.gender-female').forEach(element => {
+        const image = element.children[0];
+        const radio = element.children[1];
+        if (radio.checked) {
+            image.src = `images/female.png`;
+        }
+        else
+            image.src = `images/female-${theme}.png`;
+        element.addEventListener('mouseover', function (event) {
+            image.src = `images/female-${theme}.png`;
+        });
+        element.addEventListener('mouseout', function (event) {
+            if (radio.checked) {
+                image.src = `images/female.png`;
+                const maleImage = element.parentNode.children[0].children[0];
+                maleImage.src = `images/male-${theme}.png`;
+            }
+            else
+                image.src = `images/female-${theme}.png`;
+        });
+    });
 }
 
 // Function to save values to local storage and send message if enabled
@@ -109,21 +195,21 @@ document.getElementById('sender-language').addEventListener('change', function (
         dialectContainer.classList.remove('slide-down');
         francoLabel.style = 'display: none;';
     }
-    if(senderLanguage === 'Arabic' || receiverLanguage === 'Arabic'){
+    if (senderLanguage === 'Arabic' || receiverLanguage === 'Arabic') {
         francoLabel.style = '';
     }
-    else{
+    else {
         francoLabel.style = 'display: none;';
-        if(isFranco){
+        if (isFranco) {
             francoLabel.click();
         }
     }
-    if(senderLanguage !== '' && receiverLanguage !== '') {
+    if (senderLanguage !== '' && receiverLanguage !== '') {
         document.querySelector('.switch-container').style = '';
     }
-    else{
+    else {
         document.querySelector('.switch-container').style = 'display: none;';
-        if(isEnabled){
+        if (isEnabled) {
             enableToggle.click();
         }
     }
@@ -141,40 +227,40 @@ document.getElementById('receiver-language').addEventListener('change', function
         dialectContainer.style.display = 'none';
         dialectContainer.classList.remove('slide-down');
     }
-    if(senderLanguage === 'Arabic' || receiverLanguage === 'Arabic'){
+    if (senderLanguage === 'Arabic' || receiverLanguage === 'Arabic') {
         francoLabel.style = '';
     }
-    else{
+    else {
         francoLabel.style = 'display: none;';
-        if(isFranco){
+        if (isFranco) {
             francoLabel.click();
         }
     }
-    if(senderLanguage !== '' && receiverLanguage !== '') {
+    if (senderLanguage !== '' && receiverLanguage !== '') {
         document.querySelector('.switch-container').style = '';
     }
-    else{
+    else {
         document.querySelector('.switch-container').style = 'display: none;';
-        if(isEnabled){
+        if (isEnabled) {
             enableToggle.click();
         }
     }
 });
 
 // Dialect selection handlers
-document.getElementById('sender-dialect').addEventListener('change', function() {
+document.getElementById('sender-dialect').addEventListener('change', function () {
     senderDialect = this.value;
     saveAndNotify('senderDialect', senderDialect);
 });
 
-document.getElementById('receiver-dialect').addEventListener('change', function() {
+document.getElementById('receiver-dialect').addEventListener('change', function () {
     receiverDialect = this.value;
     saveAndNotify('receiverDialect', receiverDialect);
 });
 
 // Gender selection handlers with toggle functionality
 document.querySelectorAll('input[name="sender-gender"]').forEach(radio => {
-    radio.addEventListener('click', function() {
+    radio.addEventListener('click', function () {
         if (this.checked && senderGender === this.value) {
             this.checked = false;
             senderGender = '';
@@ -187,7 +273,7 @@ document.querySelectorAll('input[name="sender-gender"]').forEach(radio => {
 });
 
 document.querySelectorAll('input[name="receiver-gender"]').forEach(radio => {
-    radio.addEventListener('click', function() {
+    radio.addEventListener('click', function () {
         if (this.checked && receiverGender === this.value) {
             this.checked = false;
             receiverGender = '';
@@ -200,51 +286,82 @@ document.querySelectorAll('input[name="receiver-gender"]').forEach(radio => {
 });
 
 // Formal checkbox handler
-document.getElementById('formal-checkbox').addEventListener('change', function() {
+document.getElementById('formal-checkbox').addEventListener('change', function () {
     isFormal = this.checked;
     saveAndNotify('isFormal', isFormal);
 });
 
 // Franco checkbox handler
-document.getElementById('franco-checkbox').addEventListener('change', function() {
+document.getElementById('franco-checkbox').addEventListener('change', function () {
     isFranco = this.checked;
     saveAndNotify('isFranco', isFranco);
 });
 
 // Enable toggle handler
-document.getElementById('enableToggle').addEventListener('change', function() {
+document.getElementById('enableToggle').addEventListener('change', function () {
     isEnabled = this.checked;
     saveAndNotify('isEnabled', isEnabled);
 });
 
-// Dark mode functionality
-chrome.storage.local.get(['theme'], (result) => {
-    let isDarkMode = result['theme'] === 'dark';
-    if (result['theme'] === undefined) {
-        chrome.storage.local.set({ 'theme': 'dark' });
-        isDarkMode = true;
-    }
-
-    document.body.classList.toggle('dark-mode', isDarkMode);
-    document.getElementById('modeToggle').checked = isDarkMode;
-    document.getElementById('modeLabel').textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
-});
-
-document.getElementById('modeToggle').addEventListener('change', function(event) {
+document.getElementById('modeToggle').addEventListener('change', function (event) {
     let isDarkMode = event.target.checked;
     document.body.classList.toggle('dark-mode', isDarkMode);
     document.getElementById('modeLabel').textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
-    chrome.storage.local.set({ 'theme': isDarkMode ? 'dark' : 'light' });
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    const mouseoutEvent = new Event('mouseout', { bubbles: true, cancelable: true });
+    document.querySelectorAll('.gender-icon-male').forEach(element => element.dispatchEvent(mouseoutEvent));
+    document.querySelectorAll('.gender-icon-female').forEach(element => element.dispatchEvent(mouseoutEvent));
+    const theme = localStorage.getItem('theme');
+    document.querySelectorAll('.gender-male').forEach(element => {
+        const image = element.children[0];
+        const radio = element.children[1];
+        if (radio.checked)
+            image.src = `images/male.png`;
+        else
+            image.src = `images/male-${theme}.png`;
+        element.addEventListener('mouseover', function (event) {
+            image.src = `images/male-${theme}.png`;
+        });
+        element.addEventListener('mouseout', function (event) {
+            if (radio.checked) {
+                image.src = `images/male.png`;
+                const femaleImage = element.parentNode.children[1].children[0];
+                femaleImage.src = `images/female-${theme}.png`;
+            }
+            else
+                image.src = `images/male-${theme}.png`;
+        });
+    });
+    document.querySelectorAll('.gender-female').forEach(element => {
+        const image = element.children[0];
+        const radio = element.children[1];
+        if (radio.checked)
+            image.src = `images/female.png`;
+        else
+            image.src = `images/female-${theme}.png`;
+        element.addEventListener('mouseover', function (event) {
+            image.src = `images/female-${theme}.png`;
+        });
+        element.addEventListener('mouseout', function (event) {
+            if (radio.checked) {
+                image.src = `images/female.png`;
+                const maleImage = element.parentNode.children[0].children[0];
+                maleImage.src = `images/male-${theme}.png`;
+            }
+            else
+                image.src = `images/female-${theme}.png`;
+        });
+    });
 });
 
-document.getElementById('enableToggle').addEventListener('change', function(event) {
+document.getElementById('enableToggle').addEventListener('change', function (event) {
     isEnabled = event.target.checked;
     let text = isEnabled ? 'Enabled' : 'Disabled'
     document.getElementById('toggleLabel').textContent = text;
 });
 
 // Listen for messages from content.js
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.isEnabled !== undefined)
         enableToggle.click();
 });

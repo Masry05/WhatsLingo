@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Language Selector</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
+
 <body>
     <div id="popup-container">
         <div id="sender-section" class="user-section">
@@ -15,7 +17,7 @@
                     <img src="images/male.png" alt="Male" class="gender-icon-male">
                     <input type="radio" name="sender-gender" id="sender-male" value="male" class="transition">
                 </label>
-                <label class="gender-label" title="Female">
+                <label class="gender-label gender-female" title="Female">
                     <img src="images/female.png" alt="Female" class="gender-icon-female">
                     <input type="radio" name="sender-gender" id="sender-female" value="female" class="transition">
                 </label>
@@ -41,7 +43,7 @@
             </select>
             <div id="sender-dialect-container" class="dialect-container" style="display: none;">
                 <label for="sender-dialect">Dialect:</label>
-                <select id="sender-dialect">
+                <select id="sender-dialect" class="dialect-dropdown">
                     <option value="MSA">MSA</option>
                     <option value="Egypt">Egyptian</option>
                     <option value="Moroccan">Moroccan</option>
@@ -66,7 +68,7 @@
         </div>
 
         <div id="receiver-section" class="user-section">
-            <h2 class="section-title">Peer</h2>
+            <h2 class="section-title">Contact</h2>
             <div class="gender-selection receiver-gender-selection">
                 <label class="gender-label gender-male" title="Male">
                     <img src="images/male.png" alt="Male" class="gender-icon-male">
@@ -98,7 +100,7 @@
             </select>
             <div id="receiver-dialect-container" class="dialect-container" style="display: none;">
                 <label for="receiver-dialect">Dialect:</label>
-                <select id="receiver-dialect">
+                <select id="receiver-dialect" class="dialect-dropdown">
                     <option value="MSA">MSA</option>
                     <option value="Egyptian">Egyptian</option>
                     <option value="Moroccan">Moroccan</option>
@@ -123,25 +125,26 @@
         </div>
 
         <div class="mode-switch-container">
-            <input type="checkbox" id="modeToggle" class="transition">
             <span id="modeLabel">Dark Mode</span>
+            <input type="checkbox" id="modeToggle" class="transition">
         </div>
     </div>
 
     <div id="common-section">
         <label class="checkbox-label">
+            <span id="formal-span">Formal</span>
             <input type="checkbox" id="formal-checkbox">
-            <span>Formal</span>
         </label>
         <label id="franco-label" class="checkbox-label" style="display: none;">
+            <span id="franco-span">Franco</span>
             <input type="checkbox" id="franco-checkbox">
-            <span>Franco</span>
         </label>
         <div class="switch-container" style="display: none;">
-            <input type="checkbox" id="enableToggle" class="transition">
             <span id="toggleLabel">Enabled</span>
+            <input type="checkbox" id="enableToggle" class="transition">
         </div>
     </div>
     <script src="popup.js"></script>
 </body>
+
 </html>
