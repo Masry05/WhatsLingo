@@ -279,6 +279,11 @@ body.dark-mode #instructions {
     transition: all 0.2s ease-in-out;
 }
 
+.dark-mode .gender-label:hover {
+    border-color: #ebebeb;
+    transition: all 0.2s ease;
+}
+
 .gender-label:hover {
     background-color: #2ab66e;
     transition: all 0.2s ease;
@@ -291,6 +296,11 @@ body.dark-mode #instructions {
 
 .gender-label:has(input[type="radio"]:checked) {
     border-color: #2ab66e;
+    transition: all 0.2s ease;
+}
+
+.gender-label:has(input[type="radio"]:checked):hover {
+    border-color: #18663e;
     transition: all 0.2s ease;
 }
 
@@ -742,5 +752,5 @@ input[type="radio"] {
 }
 
 #modeLabel {
-    margin-left: 6px;
+    margin-left: 5px;
 }

@@ -126,7 +126,7 @@ function loadTheme() {
         else
             image.src = `images/male-${theme}.png`;
         element.addEventListener('mouseover', function (event) {
-            image.src = `images/male-${theme}.png`;
+            image.src = `images/male-${theme == "dark" ? "white" : theme}.png`;
         });
         element.addEventListener('mouseout', function (event) {
             if (radio.checked) {
@@ -147,7 +147,7 @@ function loadTheme() {
         else
             image.src = `images/female-${theme}.png`;
         element.addEventListener('mouseover', function (event) {
-            image.src = `images/female-${theme}.png`;
+            image.src = `images/female-${theme == "dark" ? "white" : theme}.png`;
         });
         element.addEventListener('mouseout', function (event) {
             if (radio.checked) {
@@ -320,7 +320,7 @@ document.getElementById('modeToggle').addEventListener('change', function (event
         else
             image.src = `images/male-${theme}.png`;
         element.addEventListener('mouseover', function (event) {
-            image.src = `images/male-${theme}.png`;
+            image.src = `images/male-${theme == "dark" ? "white" : theme}.png`;
         });
         element.addEventListener('mouseout', function (event) {
             if (radio.checked) {
@@ -340,7 +340,7 @@ document.getElementById('modeToggle').addEventListener('change', function (event
         else
             image.src = `images/female-${theme}.png`;
         element.addEventListener('mouseover', function (event) {
-            image.src = `images/female-${theme}.png`;
+            image.src = `images/female-${theme == "dark" ? "white" : theme}.png`;
         });
         element.addEventListener('mouseout', function (event) {
             if (radio.checked) {
